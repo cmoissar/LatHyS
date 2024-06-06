@@ -1,0 +1,422 @@
+function plot_figs(hObj,event,list_obj)
+
+function x=Species(nom,what,log)
+typefile =[nom '_'];
+ncfile = [dirname typefile runname diagtime '.nc']
+ncid = netcdf.open(ncfile,'NC_NOWRITE');
+x     = netcdf.getVar(ncid,netcdf.inqVarID(ncid,what));%*2.5*1E-6;
+if (strcmp(what,'Density'))
+    nrm   = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'phys_density'))
+    x=x*nrm*1E-6;
+end
+centr      = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'s_centr')))
+radius     = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'r_planet')))*1.
+gs=transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'gstep')));
+radius=radius/gs(1);
+centr=centr./gs;
+if (strcmp(what,'Temperature'))
+    max(max(max(x)))
+    nrm   = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'phys_speed'))^2
+    nrm   =  nrm*1.660538e-27/(1.3806503e-23)/3.*1E6/11600.    
+    x=x.*nrm;
+    max(max(max(x)))
+end
+if (log ~= 0)
+   nc=size(x);
+   mn=min(min(min(x(2:nc(1)-2,2:nc(2)-2,2:nc(3)-2))));
+   mx=max(max(max(x(2:nc(1)-2,2:nc(2)-2,2:nc(3)-2))));
+   mx=min(1e-3,mx*0.1);
+   x=double(log10(max(x,max(mn,mx))));
+end
+x={x radius centr};
+netcdf.close(ncid)
+ 
+
+end
+
+function x=dneu(nom,log)
+typefile ='Atmw_';
+ncfile = [dirname typefile runname diagtime '.nc'];
+ncid = netcdf.open(ncfile,'NC_NOWRITE');
+nom=strcat('Den_',nom)
+x=netcdf.getVar(ncid,netcdf.inqVarID(ncid,nom));
+centr      = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'s_centr')))
+radius     = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'r_planet')))*1.
+gs=transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'gstep')));
+radius=radius/gs(1);
+centr=centr./gs;
+if (log ~= 0)
+   nc=size(x);
+   mn=min(min(min(x(2:nc(1)-2,2:nc(2)-2,2:nc(3)-2))));
+   mx=max(max(max(x(2:nc(1)-2,2:nc(2)-2,2:nc(3)-2))));
+   mx=min(1e-3,mx*0.1);
+   x=double(log10(max(x,max(mn,mx))));
+end
+x={x radius centr};
+netcdf.close(ncid);        
+end
+
+function x=dna(log)
+typefile ='Denw_';
+ncfile = [dirname typefile runname diagtime '.nc'];
+ncid = netcdf.open(ncfile,'NC_NOWRITE');
+nrm   = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'phys_density'))
+x     = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'Dn_tot'))*1E-6;%*2.5*1E-6;
+x=x*nrm;
+centr      = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'s_centr')))
+radius     = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'r_planet')))*1.
+gs=transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'gstep')));
+radius=radius/gs(1);
+centr=centr./gs;
+if (log ~= 0)
+   nc=size(x);
+   mn=min(min(min(x(2:nc(1)-2,2:nc(2)-2,2:nc(3)-2))));
+   mx=max(max(max(x(2:nc(1)-2,2:nc(2)-2,2:nc(3)-2))));
+   mx=min(1e-3,mx*0.1);
+   x=double(log10(max(x,max(mn,mx))));
+end
+x={x radius centr};
+netcdf.close(ncid)
+end
+
+function x=Btot
+x = Bx;
+x{1}=x{1}.^2;
+y = By;
+x{1}=x{1}+((y{1}).^2);
+y = Bz;
+x{1}=x{1}+((y{1}).^2);
+x{1} = sqrt(x{1});
+end
+
+function x=Bx
+typefile ='Magw_';
+ncfile = [dirname typefile runname diagtime '.nc'];
+ncid = netcdf.open(ncfile,'NC_NOWRITE');
+x     = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'Bfield_x'));
+centr      = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'s_centr')))
+radius     = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'r_planet')))*1.
+gs=transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'gstep')));
+radius=radius/gs(1);
+centr=centr./gs;
+x={x radius centr};
+netcdf.close(ncid)
+end
+
+function x=By
+typefile ='Magw_';
+ncfile = [dirname typefile runname diagtime '.nc'];
+ncid = netcdf.open(ncfile,'NC_NOWRITE');
+x     = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'Bfield_y'));
+centr      = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'s_centr')))
+radius     = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'r_planet')))*1.
+gs=transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'gstep')));
+radius=radius/gs(1);
+centr=centr./gs;
+x={x radius centr};
+netcdf.close(ncid)
+end
+
+function x=Bz
+typefile ='Magw_';
+ncfile = [dirname typefile runname diagtime '.nc'];
+ncid = netcdf.open(ncfile,'NC_NOWRITE');
+x     = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'Bfield_z'));
+centr      = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'s_centr')))
+radius     = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'r_planet')))*1.
+gs=transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'gstep')));
+radius=radius/gs(1);
+centr=centr./gs;
+x={x radius centr};
+netcdf.close(ncid)
+end
+
+function x=Vtot
+x = Vx;
+x{1}=x{1}.^2;
+y = Vy;
+x{1}=x{1}+((y{1}).^2);
+y = Vz;
+x{1}=x{1}+((y{1}).^2);
+x{1} = sqrt(x{1});
+end
+
+function x=Vx
+typefile ='Velw_';
+ncfile = [dirname typefile runname diagtime '.nc'];
+ncid = netcdf.open(ncfile,'NC_NOWRITE');
+x     = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'Vbulk_x'));
+centr      = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'s_centr')))
+radius     = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'r_planet')))*1.
+gs=transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'gstep')));
+radius=radius/gs(1);
+centr=centr./gs;
+x={x radius centr};
+netcdf.close(ncid)
+end
+
+function x=Vy
+typefile ='Velw_';
+ncfile = [dirname typefile runname diagtime '.nc'];
+ncid = netcdf.open(ncfile,'NC_NOWRITE');
+x     = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'Vbulk_y'));
+centr      = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'s_centr')))
+radius     = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'r_planet')))*1.
+gs=transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'gstep')));
+radius=radius/gs(1);
+centr=centr./gs;
+x={x radius centr};
+netcdf.close(ncid)
+end
+
+function x=Vz
+typefile ='Velw_';
+ncfile = [dirname typefile runname diagtime '.nc'];
+ncid = netcdf.open(ncfile,'NC_NOWRITE');
+x     = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'Vbulk_z'));
+centr      = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'s_centr')))
+radius     = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'r_planet')))*1.
+gs=transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'gstep')));
+radius=radius/gs(1);
+centr=centr./gs;
+x={x radius centr};
+netcdf.close(ncid)
+end
+
+function x=Vpar
+y=Bx;
+x = Vx;
+x{1} = x{1}.*y{1};
+y=By;
+z = Vy;
+x{1} = x{1}+z{1}.*y{1};
+y=Bz;
+z = Vz;
+x{1} = x{1}+z{1}.*y{1};
+y=Btot;
+x{1}=x{1}./y{1};
+end
+
+function x=Vperp
+x=Vpar;
+y=Vtot;
+x{1}=sqrt(y{1}.^2-x{1}.^2);
+end
+
+
+function x=Etot
+x = Ex;
+%x{1}=del2(x{1}).^2;
+%y = Ey;
+%x{1}=x{1}+del2(y{1}).^2;
+%y = Ez;
+%x{1}=x{1}+del2(y{1}).^2;
+x{1}=x{1}.^2;
+y = Ey;
+x{1}=x{1}+((y{1}).^2);
+y = Ez;
+x{1}=x{1}+((y{1}).^2);
+x{1} = sqrt(x{1});
+end
+
+    function x=Ex
+typefile ='Elew_';
+ncfile = [dirname typefile runname diagtime '.nc']
+ncid = netcdf.open(ncfile,'NC_NOWRITE');
+x     = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'Efield_x'));
+centr      = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'s_centr')))
+radius     = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'r_planet')))*1.
+gs=transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'gstep')));
+radius=radius/gs(1);
+centr=centr./gs;
+x={x radius centr};
+netcdf.close(ncid)
+end
+
+function x=Ey
+typefile ='Elew_';
+ncfile = [dirname typefile runname diagtime '.nc'];
+ncid = netcdf.open(ncfile,'NC_NOWRITE');
+x     = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'Efield_y'));
+centr      = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'s_centr')))
+radius     = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'r_planet')))*1.
+gs=transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'gstep')));
+radius=radius/gs(1);
+centr=centr./gs;
+x={x radius centr};
+netcdf.close(ncid)
+end
+
+function x=Ez
+typefile ='Elew_';
+ncfile = [dirname typefile runname diagtime '.nc'];
+ncid = netcdf.open(ncfile,'NC_NOWRITE');
+x     = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'Efield_z'));
+centr      = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'s_centr')))
+radius     = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'r_planet')))*1.
+gs=transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'gstep')));
+radius=radius/gs(1);
+centr=centr./gs;
+x={x radius centr};
+netcdf.close(ncid)
+end
+
+function x=Epar
+y=Bx;
+x = Ex;
+x{1} = x{1}.*y{1};
+y=By;
+z = Ey;
+x{1} = x{1}+z{1}.*y{1};
+y=Bz;
+z = Ez;
+x{1} = x{1}+z{1}.*y{1};
+y=Btot;
+x{1}=x{1}./y{1};
+end
+
+function x=Eperp
+x=Epar;
+y=Etot;
+x{1}=sqrt(y{1}.^2-x{1}.^2);
+end
+
+
+function x=Jx
+x = Bz;
+x{1}=x{1}-circshift(x{1},[0.,1.,0.]);
+y = By;
+x{1}=x{1}-y{1}+circshift(y{1},[0.,0.,1.]);
+end
+
+function x=Jy
+x = Bx;
+x{1}=x{1}-circshift(x{1},[0.,0.,1.]);
+y = Bz;
+x{1}=x{1}-y{1}+circshift(y{1},[1.,0.,0.]);
+end
+
+function x=Jz
+x = By;
+x{1}=x{1}-circshift(x{1},[1.,0.,0.]);
+y = Bx;
+x{1}=x{1}-y{1}+circshift(y{1},[0.,1.,0.]);
+end
+
+function x=Jtot
+x = Jx;
+x{1}=x{1}.^2;
+y = Jy;
+x{1}=x{1}+((y{1}).^2);
+y = Jz;
+x{1}=x{1}+((y{1}).^2);
+x{1} = sqrt(x{1});
+end
+
+function x=Jpar
+y=Bx;
+x = Jx;
+x{1} = x{1}.*y{1};
+y=By;
+z = Jy;
+x{1} = x{1}+z{1}.*y{1};
+y=Bz;
+z = Jz;
+x{1} = x{1}+z{1}.*y{1};
+y=Btot;
+x{1}=x{1}./y{1};
+end
+
+function x=Jperp
+x=Jpar;
+y=Jtot;
+x{1}=sqrt(y{1}.^2-x{1}.^2);
+end
+
+function x=Jped
+x=Jpar;
+y=Jtot;
+x{1}=sqrt(y{1}.^2-x{1}.^2);
+end
+
+
+field_str=get(list_obj{24},'String');
+field=field_str{get(list_obj{24},'Value')};
+compo_str=get(list_obj{26},'String')
+la=get(list_obj{26},'Value')
+compo=compo_str{get(list_obj{26},'Value')};
+
+value=[field compo]
+dirname=get(list_obj{2},'String')
+runname=[get(list_obj{4},'String') '_' get(list_obj{5},'String') '_' get(list_obj{6},'String') '_']
+gtime_str=get(list_obj{8},'String')
+gtime= gtime_str(get(list_obj{8},'Value'),:)
+diagtime=['t' gtime]
+
+switch value
+    case 'Ex'
+        plot_3_planes(Ex,value,1,runname,diagtime,dirname,list_obj);
+    case 'Ey'
+        plot_3_planes(Ey,value,1,runname,diagtime,dirname,list_obj);
+    case 'Ez'
+        plot_3_planes(Ez,value,1,runname,diagtime,dirname,list_obj);
+    case 'Etotal'
+        plot_3_planes(Etot,value,1,runname,diagtime,dirname,list_obj);
+    case 'E//'
+        plot_3_planes(Epar,value,1,runname,diagtime,dirname,list_obj);
+    case 'E_|_'
+        plot_3_planes(Eperp,value,1,runname,diagtime,dirname,list_obj);
+    case 'Bx'
+        plot_3_planes(Bx,value,1,runname,diagtime,dirname,list_obj);
+    case 'By'
+        plot_3_planes(By,value,1,runname,diagtime,dirname,list_obj);
+    case 'Bz'
+        plot_3_planes(Bz,value,1,runname,diagtime,dirname,list_obj);
+    case 'Btotal'
+        plot_3_planes(Btot,value,1,runname,diagtime,dirname,list_obj);
+    case 'vx'
+        plot_3_planes(Vx,value,1,runname,diagtime,dirname,list_obj);
+    case 'vy'
+        plot_3_planes(Vy,value,1,runname,diagtime,dirname,list_obj);
+    case 'vz'
+        plot_3_planes(Vz,value,1,runname,diagtime,dirname,list_obj);
+    case 'vtotal' 
+        plot_3_planes(Vtot,value,1,runname,diagtime,dirname,list_obj);
+    case 'v//' 
+        plot_3_planes(Vpar,value,1,runname,diagtime,dirname,list_obj);
+    case 'v_|_' 
+        plot_3_planes(Vperp,value,1,runname,diagtime,dirname,list_obj);
+    case 'nelectrons'
+        plot_3_planes(dna(get(list_obj{28},'Value')),value,1,runname,diagtime,dirname,list_obj);
+    case 'Jx'
+        plot_3_planes(Jx,value,1,runname,diagtime,dirname,list_obj);
+    case 'Jy'
+        plot_3_planes(Jy,value,1,runname,diagtime,dirname,list_obj);
+    case 'Jz'
+        plot_3_planes(Jz,value,1,runname,diagtime,dirname,list_obj);
+    case 'J//' 
+        plot_3_planes(Jpar,value,1,runname,diagtime,dirname,list_obj);
+    case 'J_|_' 
+        plot_3_planes(Jperp,value,1,runname,diagtime,dirname,list_obj);
+    case 'JPedersen' 
+        plot_3_planes(Jped,value,1,runname,diagtime,dirname,list_obj);
+    case 'Jtotal' 
+        plot_3_planes(Jtot,value,1,runname,diagtime,dirname,list_obj);
+    otherwise
+        disp(value(2:size(value,2)));
+        if (value(1)=='n')
+                if (value(2)~=' ')
+                plot_3_planes(Species(value(2:size(value,2)),'Density',get(list_obj{28},'Value')),value,1,runname,diagtime,dirname,list_obj);
+                else
+                plot_3_planes(dneu(value(3:size(value,2)),get(list_obj{28},'Value')),value,1,runname,diagtime,dirname,list_obj);
+                end
+        else
+        if (value(1)=='T')
+                plot_3_planes(Species(value(2:size(value,2)),'Temperature',get(list_obj{28},'Value')),value,1,runname,diagtime,dirname,list_obj);
+        else
+        disp('Unknown Quantity');    
+        end
+        end
+        
+end
+end

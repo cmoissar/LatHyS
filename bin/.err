@@ -1,0 +1,41 @@
++ SCRIPT_PID=11079
++ set +x
++ /bin/bash -x /tmp/jobstart.11060
++ [[ hxB =~ i ]]
++ export -f module
++ export -f switchml
++ ENV=/usr/share/modules-tcl/init/profile.sh
++ export ENV
++ BASH_ENV=/usr/share/modules-tcl/init/bash
++ export BASH_ENV
++ [[ ! :/usr/share/modules-tcl/init/ksh-functions: =~ :/usr/share/modules-tcl/init/ksh-functions: ]]
++ '[' 4 -ge 3 ']'
++ [[ hxB =~ i ]]
++ MODULESHOME=/usr/share/modules-tcl
++ export MODULESHOME
++ [[ ! :/ccc/products/netcdf-3.6.3_p1/default/bin:/ccc/products/gcc-4.8.1/default/bin:/ccc/products/icc-17.0.2.174/default/17.0.2.174/bin/intel64:/usr/lib64/qt-3.3/bin:/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/ccc/products/ccc_users_env/bin:/ccc/cont003/home/gen10276/moissarc/bin:/ccc/products/ifort-17.0.2.174/default/17.0.2.174/bin/intel64:/ccc/products/intelmpi-5.1.3.181/default/bin64: =~ :/usr/bin: ]]
+++ manpath
++ manpath=/ccc/products/netcdf-3.6.3_p1/default/share/man:/ccc/products/gcc-4.8.1/default/share/man:/ccc/products/icc-17.0.2.174/default/17.0.2.174/man/common:/usr/local/share/man:/usr/share/man/en:/usr/share/man:/ccc/products/ccc_users_env/man/en:/ccc/products/ifort-17.0.2.174/default/17.0.2.174/man/common:/ccc/products/intelmpi-5.1.3.181/default/man
++ [[ ! :/ccc/products/netcdf-3.6.3_p1/default/share/man:/ccc/products/gcc-4.8.1/default/share/man:/ccc/products/icc-17.0.2.174/default/17.0.2.174/man/common:/usr/local/share/man:/usr/share/man/en:/usr/share/man:/ccc/products/ccc_users_env/man/en:/ccc/products/ifort-17.0.2.174/default/17.0.2.174/man/common:/ccc/products/intelmpi-5.1.3.181/default/man: =~ :/usr/share/man: ]]
++ '[' /opt/Modules/default/modulefiles/applications:/opt/Modules/default/modulefiles/environment:/opt/Modules/default/modulefiles/tools:/opt/Modules/default/modulefiles/graphics:/opt/Modules/default/modulefiles/parallel:/opt/Modules/default/modulefiles/libraries:/opt/Modules/default/modulefiles/compilers = '' ']'
++ '[' ccc:datadir/own:dfldatadir/own:licsrv/standard:c/intel/17.0.2.174:licsrv/intel:c++/intel/17.0.2.174:fortran/intel/17.0.2.174:mkl/17.0.2.174:intel/17.0.2.174:c/gnu/4.8.1:c++/gnu/4.8.1:fortran/gnu/4.8.1:gnu/4.8.1:mpi/intelmpi/5.1.3.181:netcdf/3.6.3_p1 = '' ']'
++ '[' /opt/Modules/default/modulefiles/applications:/opt/Modules/default/modulefiles/environment:/opt/Modules/default/modulefiles/tools:/opt/Modules/default/modulefiles/graphics:/opt/Modules/default/modulefiles/parallel:/opt/Modules/default/modulefiles/libraries:/opt/Modules/default/modulefiles/compilers = '' -a ccc:datadir/own:dfldatadir/own:licsrv/standard:c/intel/17.0.2.174:licsrv/intel:c++/intel/17.0.2.174:fortran/intel/17.0.2.174:mkl/17.0.2.174:intel/17.0.2.174:c/gnu/4.8.1:c++/gnu/4.8.1:fortran/gnu/4.8.1:gnu/4.8.1:mpi/intelmpi/5.1.3.181:netcdf/3.6.3_p1 = '' ']'
++ Name=CME_Shock-09
++ export Name
++ set -x
++ cd /ccc/scratch/cont003/gen10276/moissarc
++ mkdir CME_Shock-09
++ cd CME_Shock-09
++ cp /ccc/cont003/home/gen10276/moissarc/Lathys/quiet_plasma .
++ cp /ccc/cont003/home/gen10276/moissarc/Lathys/diag .
++ module load netcdf/3.6.3_p1
+++ /usr/bin/tclsh /usr/share/modules-tcl/libexec/modulecmd.tcl bash load netcdf/3.6.3_p1
++ eval
++ ccc_mprun ./quiet_plasma -ncxyz 20 55 55 -dt 0.05 -nhm 10000 -pn shockCME -r 0 -ug 1
+slurmd[curie5754]: error: *** JOB 9310060 KILLED AT 2018-02-14T17:34:02 WITH SIGNAL 15 ***
+srun: forcing job termination
+srun: Job step aborted: Waiting up to 2 seconds for job step to finish.
+slurmd[curie5756]: error: *** STEP 9310060.0 KILLED AT 2018-02-14T17:34:02 WITH SIGNAL 9 ***
+slurmd[curie5755]: error: *** STEP 9310060.0 KILLED AT 2018-02-14T17:34:02 WITH SIGNAL 9 ***
+slurmd[curie5757]: error: *** STEP 9310060.0 KILLED AT 2018-02-14T17:34:02 WITH SIGNAL 9 ***
+slurmd[curie5754]: error: *** STEP 9310060.0 KILLED AT 2018-02-14T17:34:02 WITH SIGNAL 9 ***

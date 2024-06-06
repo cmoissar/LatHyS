@@ -1,0 +1,90 @@
+quiet_plasma 
+--init_all_mpiinfo
+--ncell_compute 
+--allocation 
+--h3init 
+----init3 
+----print_procs_distrib 
+----pldf1 
+----bi_max_dib 
+----bi_max_dib 
+----momtin 
+------Cmtsp3 
+----pecalc 
+----ecalc3 
+----compute_fluxes 
+----compute_fluxes 
+                  DIAGNOSTIC
+----wrt_fields 
+----wrt_particles 
+----wrt_tm_results 
+                  END DIAGNOSTIC
+--first 
+----momt3d 
+------Amtsp3 
+----xcalc3                          /***************/
+------LOOP sortie
+----pack_com 
+------pre_communication 
+------pack_part 
+------communication 
+------rangement 
+----new_particles                   /***************/
+----momt3d 
+------Bmtsp3                       
+--cam3              /***************************************/ 
+----calc_field 
+------pecalc 
+            LOOP
+------ecalc3 
+------bcalc3 
+            END LOOP
+----momad 
+------pecalc 
+------ecalc3 
+------MEfield 
+------momad3r 
+----move                      /***************/
+------pecalc 
+------ecalc3 
+------mvsp3r 
+--------vcalc3 
+--------Amtsp3                   PARTICLES
+--------xcalc3 
+----------LOOP sortie
+--------pack_com 
+----------pre_communication 
+----------pack_part 
+----------communication 
+----------rangement 
+--------new_particles 
+--------Bmtsp3                /***************/
+----calc_field                /***************/
+------pecalc 
+            LOOP
+------ecalc3                     FIELDS
+------bcalc3 
+            END LOOP          /***************/
+----energy_proc               /* DIAGNOSTIC ENERGY */
+                    /***************************************/
+--Dmtsp3 
+--wrt_fields                       DIAGNOSTIC
+--wrt_particles 
+--wrt_tm_results 
+--wrt_restart 
+--Emtsp3                          END DIAGNOSTIC
+--last              /***************************************/     
+----xcalc3                       /***************/
+------LOOP sortie
+----pack_com 
+------pre_communication 
+------pack_part                    PARTICLES
+------communication 
+------rangement 
+----new_particles                /***************/
+----momt3d 
+------Cmtsp3 
+----pecalc 
+----ecalc3          /***************************************/
+--deallocation 
+--MPI_FINALIZE

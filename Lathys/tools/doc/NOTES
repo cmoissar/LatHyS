@@ -1,0 +1,16 @@
+nx,ny,bz: number of grid pts in any direction
+ncx,ncy,ncz: number of cells in any direction
+ncxm,ncym,nczm: number of cells in any direction for E field
+ncy_proc,ncz_proc: number of cells per proc: 
+		   ncy_proc=ncy/Nproc in y_direction
+		   ncz_proc=ncz/Nproc in z_direction
+Relations:
+ncx,ncy,ncz initialised on parametre.F90 but can change its values
+when MPI initialisation is finished
+
+nx=ncx+1;ny=ncy+1,nz=ncz+1
+ncxm=ncx+2;ncym=ncy+2,nczm=ncz+2
+ny_proc=ncy_proc+1; nz_proc= ncz_proc+1
+ncym_proc=ncy_proc+1; nczm_proc= ncz_proc+1
+
+Fields and Velocities,as globar variables have dimensions (ncxm,ncym_proc,nczm_proc)

@@ -1,0 +1,86 @@
+function setfile(hObj,event,list_obj)
+
+
+typefile = 'Magw_';
+dirname=get(list_obj{2},'String')
+runname=[get(list_obj{4},'String') '_' get(list_obj{5},'String') '_' get(list_obj{6},'String') '_']
+
+src_name=[dirname typefile runname '*.nc'];
+list=(dir(src_name));
+src_name=[typefile runname 't'];
+a=regexprep(list(1).name, src_name, '');
+a=regexprep(a, '.nc', '');
+list_time=a;
+diagtime=strcat('t',a)
+for i=2:size(list)
+a=regexprep(list(i).name, src_name, '');
+a=regexprep(a, '.nc', '');
+list_time=strcat(list_time,'|');
+list_time=strcat(list_time,a);
+end
+list_time=list_time
+ncfile = [dirname typefile runname diagtime '.nc'];
+ncid = netcdf.open(ncfile,'NC_NOWRITE');
+[numdims, numvars, numglobalatts, unlimdimID] = netcdf.inq(ncid);
+nom_variable ='' ;
+for i=0:numvars-1
+[varname, xtype, dimids, numatts] = netcdf.inqVar(ncid,i);
+nom_variable = char(nom_variable, varname)
+end
+planetname = transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'planetname')))
+set(list_obj{10},'String',planetname);
+gs=transpose(netcdf.getVar(ncid,netcdf.inqVarID(ncid,'gstep')))
+set(list_obj{12},'String',gs(1));
+set(list_obj{14},'String',gs(2));
+set(list_obj{16},'String',gs(3));
+
+obj=list_obj{8}; %u22
+set(obj,'Value',1);
+set(obj,'String',list_time);
+
+gtime_str=get(list_obj{8},'String')
+gtime=gtime_str(1,:)
+diagtime=['t' gtime]
+
+filename = [dirname 'Read_moment_species_' runname diagtime '.dat']
+list_spe={'electrons'};
+if exist(filename) 
+  fid = fopen(filename,'r')
+  nb_species = fscanf(fid,'%i')
+  species_name =  fgetl(fid);
+  for i=0:nb_species-1
+    list_spe(i+2)={species_name(i*10+1:i*10+10)};
+  end
+list_spe=deblank(list_spe);
+else
+  nb_species=0.
+end
+set(list_obj{18},'String',nb_species);
+
+typefile = 'Atmw_';
+ncfile = [dirname typefile runname diagtime '.nc'];
+if exist(ncfile) 
+  ncid = netcdf.open(ncfile,'NC_NOWRITE');
+  [numdims, numvars, numglobalatts, unlimdimID] = netcdf.inq(ncid);
+  nom_variable ='' ;
+  for i=0:numvars-1
+    [varname, xtype, dimids, numatts] = netcdf.inqVar(ncid,i)
+    nom_variable = char(nom_variable, varname)
+  end
+  list_D=strmatch('Den_',nom_variable)
+  nb_neu=size(list_D);
+  nb_neu=nb_neu(1);
+  for i=1:nb_neu
+  list_spe(nb_species+1+i)={[' ' regexprep(nom_variable(list_D(i),:), 'Den_', '')]}
+  end
+else
+    nb_neu=0.
+end
+set(list_obj{20},'String',nb_neu);
+
+
+obj=list_obj{35}; %u22
+set(obj,'String',list_spe);
+plot_figs(0,0,list_obj);
+
+end
