@@ -2,18 +2,18 @@
 
 ### Short description of the job ###
 
-echo "Can I make the launching process simpler?"
+echo "Run a short run for testing purposes"
 
-JOBNAME='24_05_15_Long_box_run_1'
+JOBNAME='24_06_06_Long_box_run_1'
 
 #TIME="'2-12:00:00'"
-TIME="23:30:00"
+TIME="00:30:00"
 
-NX=1000
-NY=8
-NZ=8
+NX=100
+NY=4
+NZ=4
 
-TMAX=300
+TMAX=20
 DT=0.05
 DX=1
 
