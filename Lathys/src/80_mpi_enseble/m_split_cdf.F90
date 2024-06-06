@@ -79,7 +79,7 @@ contains
   character(len=500) :: msg
 
   !--Create file name for Field (READ, proc 0) 
-  write(filename,'(a3,i4.4,a1,2a)')"c3_",0,'_',trim(run_name),".nc"
+  write(filename,'(a3,i3.3,a1,2a)')"c3_",0,'_',trim(run_name),".nc"
  
 
   !--Inquire if the file exists
@@ -176,7 +176,7 @@ contains
   do iproc=1,nb_procs 
 
    !--Create file name
-   write(filename,'(a3,i4.4,a1,a)')"c3_",iproc-1,'_',trim(run_name)
+   write(filename,'(a3,i3.3,a1,a)')"c3_",iproc-1,'_',trim(run_name)
    stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
    write(*,*) "Reading file :",filename
    call test_cdf(stId)
@@ -225,7 +225,7 @@ contains
    call get_simple_variable_cdf(ncid,"vela_y"  ,uya_proc(:,:,:) )
    call get_simple_variable_cdf(ncid,"vela_z"  ,uza_proc(:,:,:) )
   ! added to compute electronic pressure
-  ! call get_simple_variable_cdf(ncid,"Pe"  ,pe_proc(:,:,:) )
+   call get_simple_variable_cdf(ncid,"Pe"  ,pe_proc(:,:,:) )
 
    stId = nf90_close(ncid);  call test_cdf(stId)
   ! writing the magnetic field components in a file
@@ -348,7 +348,7 @@ contains
    integer,intent(in) :: coord_proc(:)
    
    integer :: ncid, stId,ii
-   integer :: dimid(11), varid(75)
+   integer :: dimid(12), varid(75)
    character(len=40) :: name_file 
    real(dp) :: dt_t(2)
    
@@ -539,7 +539,7 @@ contains
    integer,intent(in) :: coord_proc(:)
    
    integer :: ncid, stId,ii
-   integer :: dimid(11), varid(75)
+   integer :: dimid(12), varid(75)
    character(len=40) :: name_file 
    real(dp) :: dt_t(2)
    
@@ -714,7 +714,7 @@ contains
     character(len=40),intent(out) :: name_file 
     character(len=*),intent(in) :: filwrt,prefix 
   
-    write(name_file,'(a4,a1,i4.4,a1,a)')trim(prefix),"_",me,'_',trim(filwrt)
+    write(name_file,'(a4,a1,i3.3,a1,a)')trim(prefix),"_",me,'_',trim(filwrt)
   
 #ifdef HAVE_NETCDF
     name_file = trim(name_file)//".nc"

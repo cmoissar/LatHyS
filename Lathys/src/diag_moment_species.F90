@@ -56,7 +56,7 @@ contains
   character(len=40),intent(out) :: name_file 
   character(len=*),intent(in) :: filwrt 
   
-  write(name_file,'(a5,i4.4,a1,a)')"Mom3_",me,'_',trim(filwrt)
+  write(name_file,'(a5,i3.3,a1,a)')"Mom3_",me,'_',trim(filwrt)
 #ifdef HAVE_NETCDF
   name_file = trim(name_file)//".nc"
 #endif
@@ -84,14 +84,16 @@ contains
    
    select case(trim(planetname))
    case("mars")
-     nb_species = 6 
+      nb_species = 6
+   case("venus")
+      nb_species = 6
    case("titan")
       nb_species = 3
    case("mercure")
       nb_species = 2
    case("ganymede")
       nb_species = 5
-   case("earth")
+   case("shockCME")
       nb_species=1
    case default
       write(*,*) &
@@ -154,6 +156,42 @@ contains
      species_info(5)%origin_value = 1
  !    species_info(5)%CE_value = 0
  
+     !H+ planetary
+     species_info(6)%Ion_label = "Hpl"
+     species_info(6)%qsm_value = 1._dp
+     species_info(6)%origin_value = 1
+
+  case("venus")
+     !  H+ sw
+     species_info(1)%Ion_label = "Hsw"
+     species_info(1)%qsm_value = 1._dp
+     species_info(1)%origin_value = 0
+     !    species_info(1)%CE_value = 0
+
+     !He++ sw
+     species_info(2)%Ion_label = "Hesw"
+     species_info(2)%qsm_value = 2._dp/4._dp
+     species_info(2)%origin_value = 0
+     !    species_info(2)%CE_value = 0
+
+     !O+ planetary
+     species_info(3)%Ion_label = "Opl"
+     species_info(3)%qsm_value = 1._dp/16._dp
+     species_info(3)%origin_value = 1
+     !    species_info(3)%CE_value = 0
+
+     !O2+ planetary
+     species_info(4)%Ion_label = "O2pl"
+     species_info(4)%qsm_value = 1._dp/32._dp
+     species_info(4)%origin_value = 1
+     !    species_info(4)%CE_value = 0
+
+     !CO2+ planetary
+     species_info(5)%Ion_label = "CO2pl"
+     species_info(5)%qsm_value = 1._dp/44._dp
+     species_info(5)%origin_value = 1
+     !    species_info(5)%CE_value = 0
+
      !H+ planetary
      species_info(6)%Ion_label = "Hpl"
      species_info(6)%qsm_value = 1._dp
@@ -237,7 +275,7 @@ contains
   !     species_info(8)%qsm_value = 2._dp
   !     species_info(8)%origin_value = 1
  !!    species_info(8)%CE_value = 0    
-    case("earth")
+    case("shockCME")
       !  H+ sw
       species_info(1)%Ion_label = "Hsw"
       species_info(1)%qsm_value = 1._dp
@@ -587,7 +625,7 @@ enddo
  character(len=*),intent(in) :: filwrt
  
    integer :: ncid, stId,ii,nb_species,jj
-   integer :: dimid(11), varid(100)
+   integer :: dimid(12), varid(100)
    integer,allocatable :: dimspec(:)
    character(len=10),dimension(:),allocatable :: Ion_label_tab
    integer :: dimion(5)
@@ -786,7 +824,7 @@ enddo
 !   !--Create the file name
 !   call create_file_name(name_file,filwrt,mpiinfo%me)
 ! 
-!   write(msg,'(a,i4,a,a)')&
+!   write(msg,'(a,i3,a,a)')&
 !        &' ..Writing process ',mpiinfo%me,&
 !        &' on file ',name_file
 !   call wrt_double(6,msg,wrtscreen,0)
@@ -816,7 +854,7 @@ enddo
 ! 
 !   close(unit = 1)
 ! 
-!   write(msg,'(a,i4,a,a)')&
+!   write(msg,'(a,i3,a,a)')&
 !        &' ..Process ',mpiinfo%me,&
 !        &' written on file ',name_file
 !   call wrt_double(6,msg,wrtscreen,0)

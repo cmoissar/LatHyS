@@ -46,7 +46,7 @@ contains
   character(len=40),intent(out) :: name_file 
   character(len=*),intent(in) :: filwrt 
   
-  write(name_file,'(a3,i4.4,a1,a)')"p3_",me,'_',trim(filwrt)
+  write(name_file,'(a3,i3.3,a1,a)')"p3_",me,'_',trim(filwrt)
 #ifdef HAVE_NETCDF
   name_file = trim(name_file)//".nc"
 #endif
@@ -66,7 +66,7 @@ contains
   character(len=*),intent(in) :: filwrt
 
   integer :: ncid, stId,ii
-  integer :: dimid(11), varid(100)
+  integer :: dimid(12), varid(100)
   integer,allocatable :: dimspec(:)
   character(len=40) :: name_file 
 
@@ -183,7 +183,7 @@ contains
   !--Create the file name
   call create_file_name(name_file,filwrt,mpiinfo%me)
 
-  write(msg,'(a,i4.4,a,a)')&
+  write(msg,'(a,i3,a,a)')&
        &' ..Writing process ',mpiinfo%me,&
        &' on file ',name_file
   call wrt_double(6,msg,wrtscreen,0)
@@ -213,7 +213,7 @@ contains
 
   close(unit = 1)
 
-  write(msg,'(a,i4.4,a,a)')&
+  write(msg,'(a,i3,a,a)')&
        &' ..Process ',mpiinfo%me,&
        &' written on file ',name_file
   call wrt_double(6,msg,wrtscreen,0)

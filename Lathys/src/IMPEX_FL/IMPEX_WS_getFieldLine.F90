@@ -40,7 +40,7 @@ program IMPEX_getFieldLine
  real(dp),dimension(:,:),allocatable :: Out_array
  integer :: ncommand,i,length_tab,ind,n_line,n_col=-1,startcol=-1,l
  integer :: direction=0
- integer :: lmax=1000 ! maximum of point for 1 field line
+ integer :: lmax=3000 ! maximum of point for 1 field line
  real(dp) :: stepsize=-1.
  real(dp) :: t1,t2,clockangle=2000,unit_traj=1.
  __WRT_DEBUG_IN("IMPEX_getFieldLine") 
@@ -158,9 +158,9 @@ program IMPEX_getFieldLine
  
  ! creation of array of position and time
  allocate(X_MSO(n_line), Y_MSO(n_line), Z_MSO(n_line))
- X_MSO(:) = 0.;	Y_MSO(:) = 0.;	Z_MSO(:) = 0.
+ X_MSO(:) = 0.; Y_MSO(:) = 0.; Z_MSO(:) = 0.
  
- allocate(In_array(n_line,n_col));	In_array(:,:) = ""
+ allocate(In_array(n_line,n_col)); In_array(:,:) = ""
  
 
  
@@ -172,14 +172,14 @@ program IMPEX_getFieldLine
  ! extract values
  
   if (direction ==0) n_line=n_line*2
-  allocate(Out_array(n_line*lmax,8));	Out_array(:,:) = 0.
+  allocate(Out_array(n_line*lmax,8)); Out_array(:,:) = 0.
 
  call calculate_field_line(cube_name,X_MSO,Y_MSO,Z_MSO,Out_array,length_tab,clockangle,direction,stepsize,unit_traj,planetname)
  print *,'Field line calculation ------done'
  print *,'Total point Field Line : ',length_tab
  print *,'Out_array ',Out_array(length_tab-1,1),Out_array(length_tab-1,2),Out_array(length_tab-1,3), &
- 		Out_array(length_tab-1,4),Out_array(length_tab-1,5),Out_array(length_tab-1,6),Out_array(length_tab-1,7), &
- 		Out_array(length_tab-1,8)
+                Out_array(length_tab-1,4),Out_array(length_tab-1,5),Out_array(length_tab-1,6),Out_array(length_tab-1,7), &
+                Out_array(length_tab-1,8)
 
  
  call save_field_line(output_filename,X_MSO,Y_MSO,Z_MSO,Out_array,length_tab,cube_name,planetname)
@@ -280,7 +280,7 @@ __WRT_DEBUG_IN("calculate_field_line")
 !     var_name5 = "Temperature"
 ! endif    
   
- !print *,'Variable',var_name1 
+ print *,'Variable',var_name1 
  
  call read_dim_field_cdf(cube_name,var_name1,ncm_tot,radius,centr,gstep,planet,c_wpi)
 
@@ -301,7 +301,7 @@ __WRT_DEBUG_IN("calculate_field_line")
  allocate(Ay(ncm_tot(1),ncm_tot(2),ncm_tot(3)))
  allocate(Az(ncm_tot(1),ncm_tot(2),ncm_tot(3)))
  !allocate(Amod(ncm_tot(1),ncm_tot(2),ncm_tot(3)))
- Ax = zero;	Ay = zero;	Az = zero;!	Amod = zero
+ Ax = zero;     Ay = zero;      Az = zero;!	Amod = zero
 
 ! if ((ind_mag ==0).and.(ind_vel==0).and.(ind_ele==0)) then
 !    allocate(A(ncm_tot(1),ncm_tot(2),ncm_tot(3)))
@@ -358,9 +358,9 @@ __WRT_DEBUG_IN("calculate_field_line")
    count_line_local=1
    dist = sqrt(dot_product(pos-centr,pos-centr))
    if (dist < radius) continue_FL=.false.
-   if ((int(pos(1)) < 0).or. (int(pos(1))>(ncm_tot(1)-2)*gstep(1))) continue_FL=.false.
-   if ((int(pos(2)) < 0).or. (int(pos(2))>(ncm_tot(2)-2)*gstep(2))) continue_FL=.false.
-   if ((int(pos(3)) < 0).or. (int(pos(3))>(ncm_tot(3)-2)*gstep(3))) continue_FL=.false.
+   if (((pos(1)) < 0).or. (int(pos(1))>(ncm_tot(1)-5)*gstep(1))) continue_FL=.false.
+   if (((pos(2)) < 0).or. (int(pos(2))>(ncm_tot(2)-5)*gstep(2))) continue_FL=.false.
+   if (((pos(3)) < 0).or. (int(pos(3))>(ncm_tot(3)-5)*gstep(3))) continue_FL=.false.
    !do while ((continue_FL==.true.).and.(lcount<n_line*lmax))
    do while ((continue_FL==.true.).and.(count_line_local<lmax))
        count_line_local = count_line_local +1
@@ -373,7 +373,7 @@ __WRT_DEBUG_IN("calculate_field_line")
        xa = pos(1)/gstep(1)-float(i)
        ya = pos(2)/gstep(2)-float(j)
        za = pos(3)/gstep(3)-float(k)
-       
+      
        xf = 1.0 - xa
        yf = 1.0 - ya
        zf = 1.0 - za
@@ -385,24 +385,24 @@ __WRT_DEBUG_IN("calculate_field_line")
        w6 = xf*ya*zf   ! (i  ,j+1,k  )
        w7 = xa*yf*zf   ! (i+1,j  ,k  )
        w8 = xf*yf*zf   ! (i  ,j  ,k  )
-          	
+          
        Ax_loc = sgn_coord*( w1*Ax(i+1,j+1,k+1) + &
-        	     w2*Ax(i  ,j+1,k+1) + w3*Ax(i+1,j  ,k+1) + &
-        	     w4*Ax(i  ,j  ,k+1) + w5*Ax(i+1,j+1,k  ) + &
-        	     w6*Ax(i  ,j+1,k  ) + w7*Ax(i+1,j  ,k  ) + &
-        	     w8*Ax(i  ,j  ,k  ))
+                     w2*Ax(i  ,j+1,k+1) + w3*Ax(i+1,j  ,k+1) + &
+                     w4*Ax(i  ,j  ,k+1) + w5*Ax(i+1,j+1,k  ) + &
+                     w6*Ax(i  ,j+1,k  ) + w7*Ax(i+1,j  ,k  ) + &
+                     w8*Ax(i  ,j  ,k  ))
  
        Ay_loc = sgn_coord*( w1*Ay(i+1,j+1,k+1) + &
-        	     w2*Ay(i  ,j+1,k+1) + w3*Ay(i+1,j  ,k+1) + &
-        	     w4*Ay(i  ,j  ,k+1) + w5*Ay(i+1,j+1,k  ) + &
-        	     w6*Ay(i  ,j+1,k  ) + w7*Ay(i+1,j  ,k  ) + &
-        	     w8*Ay(i  ,j  ,k  ))
+                     w2*Ay(i  ,j+1,k+1) + w3*Ay(i+1,j  ,k+1) + &
+                     w4*Ay(i  ,j  ,k+1) + w5*Ay(i+1,j+1,k  ) + &
+                     w6*Ay(i  ,j+1,k  ) + w7*Ay(i+1,j  ,k  ) + &
+                     w8*Ay(i  ,j  ,k  ))
 
        Az_loc = ( w1*Az(i+1,j+1,k+1) + &
-        	     w2*Az(i  ,j+1,k+1) + w3*Az(i+1,j  ,k+1) + &
-        	     w4*Az(i  ,j  ,k+1) + w5*Az(i+1,j+1,k  ) + &
-        	     w6*Az(i  ,j+1,k  ) + w7*Az(i+1,j  ,k  ) + &
-        	     w8*Az(i  ,j  ,k  ))  
+                     w2*Az(i  ,j+1,k+1) + w3*Az(i+1,j  ,k+1) + &
+                     w4*Az(i  ,j  ,k+1) + w5*Az(i+1,j+1,k  ) + &
+                     w6*Az(i  ,j+1,k  ) + w7*Az(i+1,j  ,k  ) + &
+                     w8*Az(i  ,j  ,k  ))  
        A_loc = sqrt(Ax_loc**2+Ay_loc**2+Az_loc**2)
        
        Out_array(lcount,1) = float(line)
@@ -414,6 +414,7 @@ __WRT_DEBUG_IN("calculate_field_line")
        Out_array(lcount,7) =  Az_loc
        Out_array(lcount,8) =  A_loc
        !print *, 'Position :',Out_array(lcount,1),Out_array(lcount,2),Out_array(lcount,3),Out_array(lcount,4)
+     print *,'i,j,k, Values ',i,j,k,Ax(i,j,k),Ay(i,j,k),Az(i,j,k)
 
        pos(1) = pos(1) + sgn_direction*stepsize*Ax_loc/A_loc
        pos(2) = pos(2) + sgn_direction*stepsize*Ay_loc/A_loc
@@ -421,9 +422,9 @@ __WRT_DEBUG_IN("calculate_field_line")
        ! evaluation of loop criteria
        dist = sqrt(dot_product(pos-centr,pos-centr))
        if (dist < radius) continue_FL=.false.
-       if ((int(pos(1)) < 0).or. (int(pos(1))>(ncm_tot(1)-2)*gstep(1))) continue_FL=.false.
-       if ((int(pos(2)) < 0).or. (int(pos(2))>(ncm_tot(2)-2)*gstep(2))) continue_FL=.false.
-       if ((int(pos(3)) < 0).or. (int(pos(3))>(ncm_tot(3)-2)*gstep(3))) continue_FL=.false.
+       if (((pos(1)) < 0).or. (int(pos(1))>(ncm_tot(1)-5)*gstep(1))) continue_FL=.false.
+       if (((pos(2)) < 0).or. (int(pos(2))>(ncm_tot(2)-5)*gstep(2))) continue_FL=.false.
+       if (((pos(3)) < 0).or. (int(pos(3))>(ncm_tot(3)-5)*gstep(3))) continue_FL=.false.
    enddo ! loop for one field line
    
    
@@ -437,9 +438,9 @@ __WRT_DEBUG_IN("calculate_field_line")
    count_line_local=1
    dist = sqrt(dot_product(pos-centr,pos-centr))
    if (dist < radius) continue_FL=.false.
-   if ((int(pos(1)) < 0).or. (int(pos(1))>(ncm_tot(1)-2)*gstep(1))) continue_FL=.false.
-   if ((int(pos(2)) < 0).or. (int(pos(2))>(ncm_tot(2)-2)*gstep(2))) continue_FL=.false.
-   if ((int(pos(3)) < 0).or. (int(pos(3))>(ncm_tot(3)-2)*gstep(3))) continue_FL=.false.
+   if (((pos(1)) < 0).or. (int(pos(1))>(ncm_tot(1)-5)*gstep(1))) continue_FL=.false.
+   if (((pos(2)) < 0).or. (int(pos(2))>(ncm_tot(2)-5)*gstep(2))) continue_FL=.false.
+   if (((pos(3)) < 0).or. (int(pos(3))>(ncm_tot(3)-5)*gstep(3))) continue_FL=.false.
    !do while ((continue_FL==.true.).and.(lcount<n_line*lmax))
    do while ((continue_FL==.true.).and.(count_line_local<lmax))
        count_line_local = count_line_local +1
@@ -463,24 +464,24 @@ __WRT_DEBUG_IN("calculate_field_line")
        w6 = xf*ya*zf   ! (i  ,j+1,k  )
        w7 = xa*yf*zf   ! (i+1,j  ,k  )
        w8 = xf*yf*zf   ! (i  ,j  ,k  )
-          	
+          
        Ax_loc = sgn_coord*( w1*Ax(i+1,j+1,k+1) + &
-        	     w2*Ax(i  ,j+1,k+1) + w3*Ax(i+1,j  ,k+1) + &
-        	     w4*Ax(i  ,j  ,k+1) + w5*Ax(i+1,j+1,k  ) + &
-        	     w6*Ax(i  ,j+1,k  ) + w7*Ax(i+1,j  ,k  ) + &
-        	     w8*Ax(i  ,j  ,k  ))
- 
+                     w2*Ax(i  ,j+1,k+1) + w3*Ax(i+1,j  ,k+1) + &
+                     w4*Ax(i  ,j  ,k+1) + w5*Ax(i+1,j+1,k  ) + &
+                     w6*Ax(i  ,j+1,k  ) + w7*Ax(i+1,j  ,k  ) + &
+                     w8*Ax(i  ,j  ,k  ))
+
        Ay_loc = sgn_coord*( w1*Ay(i+1,j+1,k+1) + &
-        	     w2*Ay(i  ,j+1,k+1) + w3*Ay(i+1,j  ,k+1) + &
-        	     w4*Ay(i  ,j  ,k+1) + w5*Ay(i+1,j+1,k  ) + &
-        	     w6*Ay(i  ,j+1,k  ) + w7*Ay(i+1,j  ,k  ) + &
-        	     w8*Ay(i  ,j  ,k  ))
+                     w2*Ay(i  ,j+1,k+1) + w3*Ay(i+1,j  ,k+1) + &
+                     w4*Ay(i  ,j  ,k+1) + w5*Ay(i+1,j+1,k  ) + &
+                     w6*Ay(i  ,j+1,k  ) + w7*Ay(i+1,j  ,k  ) + &
+                     w8*Ay(i  ,j  ,k  ))
 
        Az_loc = ( w1*Az(i+1,j+1,k+1) + &
-        	     w2*Az(i  ,j+1,k+1) + w3*Az(i+1,j  ,k+1) + &
-        	     w4*Az(i  ,j  ,k+1) + w5*Az(i+1,j+1,k  ) + &
-        	     w6*Az(i  ,j+1,k  ) + w7*Az(i+1,j  ,k  ) + &
-        	     w8*Az(i  ,j  ,k  ))  
+                     w2*Az(i  ,j+1,k+1) + w3*Az(i+1,j  ,k+1) + &
+                     w4*Az(i  ,j  ,k+1) + w5*Az(i+1,j+1,k  ) + &
+                     w6*Az(i  ,j+1,k  ) + w7*Az(i+1,j  ,k  ) + &
+                     w8*Az(i  ,j  ,k  ))  
        A_loc = sqrt(Ax_loc**2+Ay_loc**2+Az_loc**2)
        
        Out_array(lcount,1) = float(line)
@@ -499,9 +500,9 @@ __WRT_DEBUG_IN("calculate_field_line")
        ! evaluation of loop criteria
        dist = sqrt(dot_product(pos-centr,pos-centr))
        if (dist < radius) continue_FL=.false.
-       if ((int(pos(1)) < 0).or. (int(pos(1))>(ncm_tot(1)-2)*gstep(1))) continue_FL=.false.
-       if ((int(pos(2)) < 0).or. (int(pos(2))>(ncm_tot(2)-2)*gstep(2))) continue_FL=.false.
-       if ((int(pos(3)) < 0).or. (int(pos(3))>(ncm_tot(3)-2)*gstep(3))) continue_FL=.false.
+       if (((pos(1)) < 0).or. (int(pos(1))>(ncm_tot(1)-5)*gstep(1))) continue_FL=.false.
+       if (((pos(2)) < 0).or. (int(pos(2))>(ncm_tot(2)-5)*gstep(2))) continue_FL=.false.
+       if (((pos(3)) < 0).or. (int(pos(3))>(ncm_tot(3)-5)*gstep(3))) continue_FL=.false.
    enddo ! loop for one field line   
    endif ! case both direction integration (backward and forward)
    
@@ -766,7 +767,7 @@ __WRT_DEBUG_IN("header_fieldline_VOTABLE")
     write(iunit,'(a)') '</DESCRIPTION>'
   
 
-  
+ print *,planetname 
   select case (trim(planetname))
   case("mars","mercury")
    write(iunit,'(a)')  '<GROUP ID="PosFrame" ref="MSO">'
@@ -832,18 +833,18 @@ __WRT_DEBUG_IN("header_fieldline_VOTABLE")
  
  ind_ele = INDEX(cube_name,"Elew")
   if (ind_ele /= 0) then
-      unit = "mV.m-1";	val_ucd = "phys.elecField"
+      unit = "mV.m-1";  val_ucd = "phys.elecField"
       varname1 = "Ex"; varname2 = "Ey"; varname3 = "Ez"; varname4 = "Etot"
   endif
   
   ind_vel = INDEX(cube_name,"Thew")
    if (ind_vel /= 0) then
-      unit = "km.s-1";	val_ucd = "phys.veloc"
+      unit = "km.s-1";  val_ucd = "phys.veloc"
       varname1 = "Ux"; varname2 = "Uy"; varname3 = "Uz"; varname4 = "Utot"
    endif  
    
     if (((ind_vel ==0 ) .and. (ind_mag ==0)).and.(ind_ele == 0)) then
-    unit = "km.s-1";	val_ucd = "phys.veloc"
+    unit = "km.s-1";    val_ucd = "phys.veloc"
             varname1 = "Ux"; varname2 = "Uy"; varname3 = "Uz"; varname4 = "Utot"
    endif
    
@@ -900,9 +901,9 @@ __WRT_DEBUG_IN("save_field_value")
         FORM = 'FORMATTED',IOSTAT=io)
    !print *,io   	
 ! Header
-    call header_fieldline_VOTABLE(iunit,cube_name,planetname)    	
-   	
-
+    call header_fieldline_VOTABLE(iunit,cube_name,planetname)    
+   
+print *,'header called successfully'
 
  !   
      do i=1,lcount
@@ -914,7 +915,7 @@ __WRT_DEBUG_IN("save_field_value")
          enddo
          write(iunit,'(a)') trim(msg)
                         
-          write(iunit,'(a)') '</TR>'	
+          write(iunit,'(a)') '</TR>'
             
     enddo
  ! ! finalize the file

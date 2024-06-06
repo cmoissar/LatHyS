@@ -8,6 +8,7 @@ module initialisation
  use m_writeout
  use m_timing,only     : time_get
  use m_distribution_function
+ use mpi
 
 #include "q-p_common.h"
 
@@ -67,9 +68,10 @@ contains
   
   allocate(dn_e_pl(ncm(1),ncm(2),ncm(3))) ; dn_e_pl = zero
   allocate(dn_e_incdt(ncm(1),ncm(2),ncm(3))) ; dn_e_incdt = zero
-
+ 
   allocate(viscosity(ncm(1),ncm(2),ncm(3)))      ; viscosity      = zero
   allocate(pos_choc(ncm(2),ncm(3)))           ; pos_choc    = 0
+  allocate(resistivity(ncm(1),ncm(2),ncm(3)))    ;       resistivity = zero
 
   !allocate(resistivity(ncm(1),ncm(2),ncm(3))) ; resistivity = zero
   !--resistivity actually is not used
@@ -161,7 +163,7 @@ contains
  subroutine h3init()
   !Initialistion des parametres plasma pour la simulation
   
-  use mpi
+ ! use mpi
   use defs_mpitype,only         : mpiinfo,nproc
   use defs_grid
   use defs_species,only            : print_species
@@ -175,8 +177,6 @@ contains
   use part_moment,only               : momtin,Fmtsp3
   use diagnostique     !all
   use particle
-  use field_add_waves
-  use defs_parametre, only : pos_plan
 
 #ifdef HAVE_WAVE_TEST
   use wavetest,only           : init_wavetest,Amtsp3_wt
@@ -187,10 +187,8 @@ contains
   real(dp) :: coupdslo
   real(dp) :: s_lon(3)                  !--Length of the box in any Direction 
   real(dp) :: s_min_par(3),s_max_par(3) !--Particles max and min in any direction
+  real(dp) :: pos_plan(3)       !--obstacle position
   character(len=500) :: msg
-
-  ! Choose a cell where magnetic field values are recorded every time_step
-  character(len=1):: a
 
   __WRT_DEBUG_IN("h3init")  
   __GETTIME(3,1)!--Timer start
@@ -209,7 +207,7 @@ contains
    s_r = s_max-s_min
   endif
 
-  !--Definition de la grille relatif a chaque processus
+  !--Definition de la grille relatif  chaque processus
   s_lon = (s_max-s_min)/real((/1,mpiinfo%dims(1),mpiinfo%dims(2)/),dp)
   if ((abs(s_min_loc(2)-s_min(2))).lt.0.001) s_min_loc(2)=s_min(2)
   if ((abs(s_min_loc(3)-s_min(3))).lt.0.001) s_min_loc(3)=s_min(3)
@@ -217,20 +215,16 @@ contains
   if ((abs(s_max_loc(3)-s_max(3))).lt.0.001) s_max_loc(3)=s_max(3)
  
  
+  if(restart==0)then
   select case(trim(planetname))
-  case("moon","mars","mars3try","titan","mercure")
+  case("moon","mars","venus","mars3try","titan","mercure")
     pos_plan = int((s_max-s_min)/two+s_min)
   case("ganymede")
     pos_plan(1) = int((s_max(1)-s_min(1))*two/three+s_min(1))
     pos_plan(2:3) = int((s_max(2:3)-s_min(2:3))/two+s_min(2:3))
-  case("earth")
-    pos_plan(1) = int((s_max(1) - 100))
-   ! pos_plan(1) = int((s_max(1)-s_min(1))*14.0/15.0+s_min(1))
-   ! write(*,*) "pos_plan(1)=", pos_plan(1)
-    pos_plan(2) = int((s_max(2)-s_min(2))/two+s_min(2)) !*two/three+s_min(2))
-    pos_plan(3) = int((s_max(3)-s_min(3))/two+s_min(3)) 
-   ! pos_plan(2:3) = int((s_max(2:3)-s_min(2:3))/two+s_min(2:3))
-   ! pos_plan = int((s_max-s_min)/two+s_min)
+  case("shockCME")
+    pos_plan(1) = int((s_max(1)-s_min(1))*140._dp/150._dp+s_min(1))
+    pos_plan(2:3) = int((s_max(2:3)-s_min(2:3))/two+s_min(2:3))
   case default
     write(msg,'(a,3x,a,4x,3a)')ch10,&
          "ERROR: Selected Environment:",&
@@ -238,8 +232,7 @@ contains
     call wrt_double(qp_out,msg,wrtscreen,wrtdisk)
     stop
   end select
-
-  if(restart==0)then
+  
  !--Intialisation of Species 
    call init_species(Spe,pos_plan)
    
@@ -251,16 +244,13 @@ contains
    rphi = phi*deg_to_rad
    rpsi = psi*deg_to_rad
 
-   !--Valeur de B imposee l'entree de la boite
+   !--Valeur de B impos  l'entre de la boite
 
    b0 = one
 
    bx0  = b0*cos(rphi)*sin(rpsi)  
    by0  = b0*sin(rphi)*sin(rpsi)
    bz0  = b0*cos(rpsi)
-
-   by1 = by0
-   bz1 = bz0
 
    !--Initialisation du champ magntique
    !--Magnetic field (magnitude of background reference field)
@@ -282,7 +272,7 @@ contains
    write(msg,'(2a)')ch10,&
        " _______________ Restarted from a file ______________________"
    call wrt_double(qp_out,msg,wrtscreen,wrtdisk)
-  endif !endif restart==O
+  endif
 
   write(msg,'(3a,3(a,f6.3),2a,f6.3)')ch10,&
        &" ________________ Discretization Step _______________________",&
@@ -344,7 +334,7 @@ contains
    write(iunit,'(a15,1pe12.4)') 'resis',resis
    write(iunit,'(a15,1pe12.4)') 'dmin',dmin  
    write(iunit,'(a15)') 'iwr'
-   write(iunit,'(15x,5i4)') (iwr(ii),ii=1,nwrm)
+   write(iunit,'(15x,5i3)') (iwr(ii),ii=1,nwrm)
    close(iunit)
   endif
   
@@ -378,13 +368,7 @@ contains
 
   !--Basic Parameters only if NOT RESTART
   if(restart==0)then
-   !--create temporal_B/ a bit ahead of call init_temporal_B()
-   !--otherwise, some procs with me>0 might get there too fast,
-   !--when temporal_B/ does not exist yet
-   !if (mpiinfo%me==0) then
-   !  write(*,*) "creating temporal_B directory"
-   !  call system("mkdir temporal_B")
-   !endif
+
    !--Initialisation des parametres pour la simulation
    call init3(betai,cd0,rho0,rmu0i,eps0,&
         &     te,cs,t,iter,&
@@ -392,33 +376,21 @@ contains
         &     Spe%S(:)%betas,&
         &     Spe%S(:)%rmds,Spe%S(:)%qms&
         &     )
-  !-- Init waves only at the beginning, let them propagate then
-   call init_waves()
-   !call init_temporal_B()
+  
   endif
 
   !--resistivity actually is not used
   !resistivity= resis
-
-
 
 #ifdef HAVE_WAVE_TEST
    !--Initialisation when Wave test 
    call init_wavetest()
 #endif
 
-  ! Attention, these two next lines will have to go if we use
-  ! field_add_waves. TODO: make a compilation option taking care
-  ! of this.
-  by1 = by0
-  bz1 = bz0     
-
-  !--Initialisation du champ electrique de convection pour la
+  !--Initialisation du champ lectrique de convection pour la
   !   condition au bord gauche de la boite
   e_conv = (/zero,vxmean*bz0,-vxmean*by0/)
-  e1_conv = (/zero,vxmean*bz1,-vxmean*by1/)
-
-  !write(*,*) e_conv, e1_conv
+  e1_conv = (/zero,vxmean*bz0,-vxmean*by0/)
 #ifdef HAVE_DEBUG   
   call print_procs_distrib()
 #endif
@@ -449,7 +421,7 @@ contains
    s_max_par(3) = maxval(particule(1:nptot)%pos(3))
 
 #ifdef HAVE_DEBUG   
-    write(msg,'(a,i4.4,a,i8,a,3(2a,i4.4,a,2(f9.4)))')&
+    write(msg,'(a,i3,a,i8,a,3(2a,i3,a,2(f9.4)))')&
         &' Process ',mpiinfo%me,' has ',nptot,'particles at initialisation',ch10,&
         &' Process ',mpiinfo%me,' has min and max on X',&
         & s_max_par(1),s_min_par(1),ch10,&
@@ -462,7 +434,7 @@ contains
 
    !--Total nuber of macro-particles in the box
    call MPI_REDUCE(nptot,nptot_all,1,MPI_INTEGER,MPI_SUM,0,mpiinfo%comm,ioerr)  
-   write(msg,'(2a,1(a,a12,i15))')&
+   write(msg,'(2a,1(a,a12,i12))')&
         & ch10," _________ Particles _________",&
         & ch10, "   Nptot  = ",nptot_all
    call wrt_double(qp_out,msg,wrtscreen,wrtdisk)
@@ -472,7 +444,7 @@ contains
     call bi_max_dib(irand,Spe%S(is)%vth1,Spe%S(is)%vth2,Spe%S(is)%n1,Spe%S(is)%n2,&
          &          particule(1:nptot)%vel(1),particule(1:nptot)%vel(2), &
          &          particule(1:nptot)%vel(3),Spe%S(is)%rspeed)
-    !--On ajoute la vitesse dirigee
+    !--On ajoute la vitesse dirige
     do ii = Spe%S(is)%n1, Spe%S(is)%n2
      particule(ii)%vel = particule(ii)%vel +&
           &             (/ Spe%S(is)%vxs,Spe%S(is)%vys,Spe%S(is)%vzs/)
@@ -485,9 +457,7 @@ contains
      call add_ionosphere(Spe,particule,gstep,s_min_loc,s_max_loc,irand,nptot)
    endif
 
-
 #ifdef HAVE_WAVE_TEST
-   call Amtsp3_waves(particule,vel,1,nptot,gstep,s_min_loc,nc1)
    call Amtsp3_wt(particule,vel,1,nptot,gstep,s_min_loc,nc1)
 #endif
 
@@ -601,7 +571,6 @@ contains
   character(len=3) :: unit
   character(len=500) :: msg
 
-
   mem_bit_proc = real(tot_size_arr,dp)*real(size(transfer(1.0_dp,sizeof)),dp)
   mem_bit_proc = mem_bit_proc+real(npm,dp)*real(particle_type_size(),dp)
 
@@ -661,7 +630,7 @@ contains
        &'   COORD PROC NON PICKUP'
   call wrt_double(6,msg,wrtscreen,wrtdisk)
 
-  write(msg,'(a,i4.4,a,2i4)')&
+  write(msg,'(a,i3,a,2i3)')&
        &' Process ',mpiinfo%me,&
        &' has coords ',mpiinfo%coord(1),mpiinfo%coord(2)
   call wrtout(6,msg,'PERS')
@@ -674,7 +643,7 @@ contains
        &'   COORD PROC PICKUP'
   call wrt_double(6,msg,wrtscreen,wrtdisk)
 
-  write(msg,'(a,i4.4,a,2i4)')&
+  write(msg,'(a,i3,a,2i3)')&
        &' Process ',mpiinfo_pick%me,&
        &' has coords ',mpiinfo_pick%coord(1),mpiinfo_pick%coord(2)
   call wrtout(6,msg,'PERS')
@@ -688,7 +657,7 @@ contains
         &'  COORD ET VOISINAGE PROC DES PARTICULES STANDARD   '
    call wrt_double(6,msg,wrtscreen,wrtdisk)
 
-   write(msg,'(a,i4.4,a,2i4,a,8i4)')&
+   write(msg,'(a,i3,a,2i3,a,8i3)')&
         &' Process ',mpiinfo%me,&
         &' has coords ',mpiinfo%coord,&
         &' and neighbours ',mpiinfo%voisin 
@@ -702,7 +671,7 @@ contains
    call wrt_double(6,msg,wrtscreen,wrtdisk)
 
 
-   write(msg,'(a,i4.4,a,2i4,a,8i4)')&
+   write(msg,'(a,i3,a,2i3,a,8i3)')&
         &' Process ',mpiinfo_pick%me,&
         &' has coords ',mpiinfo_pick%coord,&
         &' and neighbours ',mpiinfo_pick%voisin
@@ -712,69 +681,6 @@ contains
   __WRT_DEBUG_OUT("print_procs_distrib")
  end subroutine print_procs_distrib
  !********************* END PRINT_PROCS_DISTRIB ****************************
-
- subroutine init_temporal_B()
-
-  use defs_parametre, only : pos_plan
-
-  real :: x_gsm, y_gsm, z_gsm
-  real :: x_sim, y_sim, z_sim
-  character(len=150) :: file_name, fn
-  logical :: L_open
-  integer :: ix_box, iy_box, iz_box
-  integer :: file_count, unit_file
-
-  file_count = 0
-
-  do ix_box = 1, int((s_max_loc(1) - s_min_loc(1))/gstep(1))
-    do iy_box = 1, int((s_max_loc(2) - s_min_loc(2))/gstep(2))
-      do iz_box = 1, int((s_max_loc(3) - s_min_loc(3))/gstep(3))
-
-        x_sim = s_min_loc(1) + ix_box*gstep(1)
-        y_sim = s_min_loc(2) + iy_box*gstep(2)
-        z_sim = s_min_loc(3) + iz_box*gstep(3)
-
-        x_gsm =  pos_plan(1)-x_sim
-        y_gsm =  pos_plan(2)-y_sim
-        z_gsm = -pos_plan(3)+z_sim
-        
-        if (((sqrt(x_gsm**2+y_gsm**2+z_gsm**2)<120) .and. &
-               (mod(int(x_gsm), 10)==0 .and. &
-                mod(int(y_gsm), 25)==0 .and. &
-                mod(int(z_gsm), 25)==0)) .or. &
-             (mod(int(x_gsm), 750)==0 .and. &
-              mod(int(y_gsm), 100)==0 .and. &
-              mod(int(z_gsm), 100)==0)) then
-
-            write(file_name, '(A6,I5,A2,I5,A2,I5,A2,A4)') &
-                              "Btime_",int(x_gsm),"x_", &
-                                       int(y_gsm),"y_", &
-                                       int(z_gsm),"z_",'.txt'
-            !--By creating file_name and file_count at the same time
-            !--we ensure they have a one-to-one correspondancy
-            file_name = trim(file_name)
-            file_count = file_count+1
-
-            !--80+file_count because first units are already used
-            open(UNIT=80+file_count,FILE=file_name)
-            inquire(FILE=file_name, NUMBER=unit_file, OPENED=L_open)
-!            write(*,*)  "file_name", file_name, &
-!                      & "position", int(x_gsm), int(y_gsm), int(z_gsm), &
-!                      & "isopen", L_open,"has number", unit_file
-            write(UNIT=80+file_count,FMT=*) 'position:', &
-                                           & int(x_gsm), int(y_gsm), int(z_gsm)
-!            inquire(UNIT=80+file_count, NAME=FN, OPENED=L_open)
-!            write(*,*)  "unit", 80+file_count, &
-!                      & "position", int(x_gsm), int(y_gsm), int(z_gsm), &
-!                      & "isopen", L_open,"has name", FN
-            close(UNIT=80+file_count)
-
-        endif
-
-      enddo
-    enddo
-  enddo
- end subroutine init_temporal_B
 
 end module initialisation
 

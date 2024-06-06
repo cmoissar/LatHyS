@@ -14,6 +14,7 @@ module field_b
  use defs_mpitype,only     : mpitype
  use m_writeout
  use m_timing,only         : time_get
+ use mpi
 
 #include "q-p_common.h"
 
@@ -48,7 +49,7 @@ contains
  !!  Calculation of B from Maxwell's equation dB/dt = - curl(E)
  !!  B(new) = B - dtb * curl(E)
  subroutine bcalc3(dt,Bfield,Efield,nc1,gstep,&
-      &            by0,bz0,by1,bz1,ey_conv,ez_conv,&
+      &            by0,bz0,ey_conv,ez_conv,&
       &            e1y_conv,e1z_conv,vxmean)
 
   use field_cond_limit,only       : cond_limit_func
@@ -60,7 +61,7 @@ contains
 
   integer,intent(in) :: nc1(3)
   real(dp),intent(in) :: dt
-  real(dp),intent(in) :: by0,bz0,by1,bz1,vxmean
+  real(dp),intent(in) :: by0,bz0,vxmean
   real(dp),intent(out) :: ey_conv,ez_conv,e1y_conv,e1z_conv
   real(dp),dimension(3),intent(in) :: gstep  !--Grid step
   type(arr3Dtype),intent(in) :: Efield
@@ -143,7 +144,7 @@ contains
 #ifdef HAVE_WAVE_TEST
   call b_boundary_wt(Bfield,nc1(1),ey_conv,ez_conv,e1y_conv,e1z_conv,vxmean)
 #else
-  call cond_limit_func(Bfield,nc1(1),by0,bz0,by1,bz1,ey_conv,ez_conv,e1y_conv,e1z_conv,vxmean)
+  call cond_limit_func(Bfield,nc1(1),by0,bz0,ey_conv,ez_conv,e1y_conv,e1z_conv,vxmean)
 #endif
 
   !--Smoothing Bfield in the last part of the box (along the x-axis)
@@ -175,7 +176,7 @@ contains
  subroutine testBfield(Bfield,Bfield_h,t,iter,infompi)
 
   use defs_parametre,only      : eps
-  use mpi
+  !use mpi
 
   integer,intent(in) :: iter
   real(dp),intent(in) :: t

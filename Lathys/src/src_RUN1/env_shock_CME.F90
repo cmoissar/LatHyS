@@ -1,16 +1,16 @@
 !!=============================================================
 !!=============================================================
-!!module: env_earth
+!!module: env_shock_CME
 !! NAME
-!!  env_earth (SHess)
+!!  env_shock_CME (SHess)
 !!
-!! Gathers all the earth related file into a single one, for more clarity
+!! Gathers all the shock_CME related file into a single one, for more clarity
 !!
 !! FUNCTION
-!!  Contains definition of type for the environment planet earth
+!!  Contains definition of type for the environment planet shock_CME
 !!
 !! NOTE
-module env_earth
+module env_shock_CME
 
  use defs_basis
  use defs_species
@@ -25,51 +25,51 @@ module env_earth
 
  public::                     &
 
-      init_species_earth,      &!--Intialise the earth environment
-      add_b_dipole_earth
+      init_species_shock_CME,      &!--Intialise the shock_CME environment
+      add_b_dipole_shock_CME
 contains
  !!#####################################################################
  !!=============================================================
- !!routine: env_earth/init_species_earth
+ !!routine: env_shock_CME/init_species_shock_CME
  !!
  !! FUNCTION
- !!  Initialize species for earth
+ !!  Initialize species for shock_CME
  !! IN 
  !! planet center
  !!
  !! OUT
  !! species 
  !!
- subroutine init_species_earth(species,s_centr)
+ subroutine init_species_shock_CME(species,s_centr)
 
   real(dp),intent(in) :: s_centr(3)
   type(species_type),intent(inout) :: species
   
   integer,parameter :: H=1
   integer :: is
-  real(dp) :: tot_tmp,vitessethermique,V_SW
+  real(dp) :: tot_tmp,vitessethermique
 
-  !--earth contains two species of particles
+  !--shock_CME contains two species of particles
   !--Allocation of species_type
   call alloc_species(1,species)
   
   !--Name of the planet
-  species%planetname = "earth"
+  species%planetname = "shock_CME"
   
   !--Intialize Physical parameter used here
   !--Physical density of reference (m-3)
   !-- Densite de l'espece dominante dans le plasma incident
-  !-- earth aphelie:30.4e6
-  !-- earth perihelie:69.35e6
-  species%ref%density = 6e6  !14-12-2006
+  !-- shock_CME aphelie:30.4e6
+  !-- shock_CME perihelie:69.35e6
+  species%ref%density = 6.e6  
 
   !--Ions inertial length (km)
   species%ref%c_omegapi = Sp_Lt*sqrt(epsilon0*pmasse_e2/species%ref%density)/1.e3 !Sp_Lt: speed of light
 
   !--Magnetic Field (Tesla)
-  !-- earth aphelie =21nT
-  !-- earth perihelie= 46 nt
-  species%ref%mag = 10e-9 !3.75e-9    !14-12-2006
+  !-- shock_CME aphelie =21nT
+  !-- shock_CME perihelie= 46 nt
+  species%ref%mag = 10.e-9
 
   !--Alfven Speed
   species%ref%alfvenspeed = species%ref%mag/&
@@ -78,15 +78,16 @@ contains
   !--Inverse of gyrofrequency
   species%ref%inv_gyro = amu_pmass/(e_Cb*species%ref%mag)
 
+
+
   !--Max absorption length (km)
-  species%ref%maxabs = 0.0_dp
+  species%ref%maxabs = 00._dp
 
   !--Assignation of Planet values
   species%P%centr  = s_centr
-  !write(*,*)s_centr
+	!write(*,*)s_centr
 #ifndef HAVE_NO_PLANET
-  !species%P%radius = 20._dp!24._dp/species%ref%c_omegapi
-  species%P%radius = 14._dp!24._dp/species%ref%c_omegapi
+  species%P%radius = 10._dp!24._dp/species%ref%c_omegapi
   species%P%r_exo  = species%P%radius+0._dp/species%ref%c_omegapi
   species%P%r_iono = species%P%radius   !TO change!!!!!!!!
   species%P%r_lim  = species%P%radius+0._dp/species%ref%c_omegapi
@@ -100,12 +101,10 @@ contains
   species%S(:)%ng = (/10/) !(/6, 6/) !(/2,2/)
 
   !--Direct Speeds  (vitesses dirigees? en km/s)
-  V_SW = 400.0_dp/species%ref%alfvenspeed !-- Solar wind speed, value 14-12-2006
+  species%S(H)%vxs = 500.0_dp/species%ref%alfvenspeed !--  H+
+  species%S(:)%vys  = zero
+  species%S(:)%vzs  = zero
 
-  species%S(H)%vxs = V_SW !--  H+ 
-  species%S(:)%vys = zero
-  species%S(:)%vzs = zero
- 
   !--Percentage of He in the solar wind: n(He++)/(n(He++)+n(H+))
   species%S(H)%percent = one
 
@@ -116,10 +115,10 @@ contains
   species%S(:)%rtemp   = (/one/) !(/one,four/)
 
   !--Betas
-  !-- earth Aphelie 0.32 (H) 0.06 (He) 0.47 (e)
-  !-- earth perihelie  (H) 
-  species%S(H)%betas = 0.5_dp
-  species%betae = 0.5_dp
+	!-- shock_CME Aphelie 0.32 (H) 0.06 (He) 0.47 (e)
+	!-- shock_CME perihelie  (H) 
+  species%S(H)%betas = 0.32_dp
+  species%betae = 0.47_dp
 
   !--Rapport des vitesse thermiques entre H+ et He++
   species%S(:)%rspeed = one
@@ -127,7 +126,7 @@ contains
   !--Rapport des vitesses thermique entre parallel et perpendiculair  H+ et He++
   species%S(:)%rvth = one
 
-  !--Rapport des masses
+!--Rapport des masses
   species%S(:)%rmds = one
 
   !--Rapport charge sur masse
@@ -155,25 +154,24 @@ contains
   !--Accumulate sum
   species%S(:)%prob = (/(sum(species%S(:is)%prob),is=1,species%ns)/)
 
- end subroutine init_species_earth 
+ end subroutine init_species_shock_CME 
 !****************************** END INIT_SPECIES ************************************
 
 
  !!=============================================================
- !!subroutine: b_dipole/add_b_dipole_earth
+ !!subroutine: b_dipole/add_b_dipole_shock_CME
  !! NAME
- !!  add_b_dipole_earth (RModolo,GM Chanteur, E. Richer, S. Hess, MMancini,RAllioux)
+ !!  add_b_dipole_shock_CME (RModolo,GM Chanteur, E. Richer, S. Hess, MMancini,RAllioux)
  !!
  !! FUNCTION
  !!  Contains Dipole moment calculation for Mercury
  !!
  !! NOTE
  !! The magnetic field input at initialization is derived from Andersson et al, Science,2008, from Mariner 10 and Messenger
- !! update version  : EGU abstract 2010, Alexeev et al, M = 196 nT*R_M^3, offse
-!!of 405km Northward., tilt 4° (offset not implemented yet)
+ !! update version  : EGU abstract 2010, Alexeev et al, M = 196 nT*R_M^3, offset of 405km Northward., tilt 4° (offset not implemented yet)
  !!
  !!
- subroutine add_b_dipole_earth(Bfield,ncm,Spe,gstep,s_min_loc)
+ subroutine add_b_dipole_shock_CME(Bfield,ncm,Spe,gstep,s_min_loc)
  use defs_arr3Dtype
  use atm_magnetic_fields
   integer, intent(in) :: ncm(3)
@@ -187,11 +185,11 @@ contains
   integer :: ii,jj,kk
   real(dp) :: radius,rinclinaison,rphase
   real(dp),dimension(3) :: ss,moment_dip,b_dip,moment_dip_u
-  real(dp) :: bme
- __WRT_DEBUG_IN("add_b_dipole_earth")
+ real(dp) :: bme
+ __WRT_DEBUG_IN("add_b_dipole_shock_CME")
 
-   bme=150.e-9 ! en Tesla * rayon planete au cube (moment dipolaire de la terre)
-  ! bme=196e-9 ! en Tesla * rayon planete au cube (moment dipolaire de mercure)
+   bme=300.e-9 ! en Tesla * rayon planete au cube (moment dipolaire de mercure)
+ ! bme=196e-9 ! en Tesla * rayon planete au cube (moment dipolaire de mercure)
   !--Initialisation
   !--Dipolar Moment in planetary units (Spe%ref%mag) mu0/4pi*M
    moment_dip_u(1) = 0.
@@ -221,6 +219,6 @@ contains
     enddo
    enddo
   enddo
-  __WRT_DEBUG_OUT("add_b_dipole_earth")
- end subroutine add_b_dipole_earth
-end module env_earth
+  __WRT_DEBUG_OUT("add_b_dipole_shock_CME")
+ end subroutine add_b_dipole_shock_CME
+end module env_shock_CME

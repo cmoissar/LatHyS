@@ -539,7 +539,7 @@ endif
 
 #ifdef HAVE_DEBUG
   if(wrtscreen == 0) then 
-   print '(" Moi processus ",i4," il reste ",i3," particules a sortir sur ",i10)',&
+   print '(" Moi processus ",i3," il reste ",i3," particules a sortir sur ",i10)',&
         mpiinfo%me,count(particule(1:np)%dir/=0_iXb),np
 
    print '("Moi processus ",i2," max & min ",6(f8.3))',mpiinfo%me,&
@@ -555,7 +555,7 @@ endif
    if(mpiinfo%me == 0) then
     write(*,*) "          VERIFICATION"
    endif
-   print '("Moi processus ",i4,"j ai maintenant ",i10," part alors que j en attends ",i10)', &
+   print '("Moi processus ",i3,"j ai maintenant ",i10," part alors que j en attends ",i10)', &
         mpiinfo%me,np,np_ini-sum(np_out)+Preg%np%in&
         &  -sum(np_out_pick)+Preg%pp%in-Preg%out_xp-Preg%out_xm
   endif
@@ -598,7 +598,7 @@ endif
   call pre_communication(Preg%pp%out_dir,Preg%pp%in_dir,mpiinfo_pick,etiquette1)
 
 #ifdef HAVE_DEBUG 
-  write(msg,'(2(2a,i4.4,a,8i5,a))')&
+  write(msg,'(2(2a,i3,a,8i5,a))')&
        &" RCP  PARTICLES <=",&
        &" Process ",mpiinfo%me,&
        &" is exchanging ",Preg%np%in_dir,ch10,&

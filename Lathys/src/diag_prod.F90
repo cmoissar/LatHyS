@@ -47,7 +47,7 @@ contains
   character(len=40),intent(out) :: name_file 
   character(len=*),intent(in) :: filwrt 
 
-  write(name_file,'(a5,i4.4,a1,a)')"Pro3_",me,'_',trim(filwrt)
+  write(name_file,'(a5,i3.3,a1,a)')"Pro3_",me,'_',trim(filwrt)
 #ifdef HAVE_NETCDF
   name_file = trim(name_file)//".nc"
 #endif
@@ -68,7 +68,7 @@ contains
   character(len=*),intent(in) :: filwrt
 
   integer :: ncid, stId,ii,i, compt
-  integer :: dimid(11), varid(75)
+  integer :: dimid(12), varid(75)
   integer,allocatable :: dimspec(:)
   character(len=40) :: name_file
   character(len=11) :: nam
@@ -136,7 +136,7 @@ contains
     if (atmosphere%species(i)%iono .EQV. .TRUE.) then
       compt = compt+1
       write(nam,'(a,i2)')"Spe_",compt
-      stId = nf90_def_var(ncid,nam,nf90_char,dimid(9),varid(ii))
+      stId = nf90_def_var(ncid,nam,nf90_char,dimid(12),varid(ii))
       call test_cdf(stId); ii = ii+1
       write(nam,'(2a)')"Prod_",TRIM(atmosphere%species(i)%name)
       stId = nf90_def_var(ncid, nam , QP_NF90_DP,dimid(6:8),varid(ii))
@@ -195,6 +195,7 @@ contains
       compt = compt+1
       write(nam,'(2a)')"Prod_",TRIM(atmosphere%species(i)%name)
       stId = nf90_put_var(ncid, varid(ii), nam)
+      write(*,*) nam
       call test_cdf(stId); ii = ii+1
       stId = nf90_put_var(ncid, varid(ii), atmosphere%species(i)%prod)
       call test_cdf(stId); ii = ii+1

@@ -65,7 +65,7 @@ contains
   subroutine compute_global_flux(flux_surf_g,fdde_surf_g,fdda_surf_g,n_part_imp_g,n_part_del_g)
    use defs_variable
    use defs_mpitype
-   use mpi
+  ! use mpi
 
    integer,intent(inout)                                         :: n_part_imp_g,n_part_del_g
    real(dp),intent(inout),dimension(nphi,ntheta,1)        :: flux_surf_g
@@ -111,7 +111,7 @@ contains
     character(len=*),intent(in) :: filwrt
     integer :: ncid, stId,ii
     integer,parameter :: nspecies_flux=1
-    integer :: dimid(11), varid(75)
+    integer :: dimid(12), varid(75)
     integer,allocatable :: dimspec(:)
     character(len=40) :: name_file
     real(dp),dimension(nphi,ntheta,nspecies_flux)        :: flux_surf_g

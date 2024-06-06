@@ -68,10 +68,10 @@ contains
    var_name1 = "Bx"
    var_name2 = "By"
    var_name3 = "Bz"
-   
+   var_name4 = "Btot"  
    prefix_output = "Magw"
    
-   call merge_field_cdf(run_name,prefix,var_name1,var_name2,var_name3,prefix_output) 
+   call merge_field_cdf(run_name,prefix,var_name1,var_name2,var_name3,var_name4,prefix_output) 
    
   !   prefix = "Vel3"
   !   var_name1 = "Ux"
@@ -85,9 +85,9 @@ contains
      var_name1 = "Ex"
      var_name2 = "Ey"
      var_name3 = "Ez"
-     
+     var_name4 = "Etot"
    prefix_output = "Elew"
-   call merge_field_cdf(run_name,prefix,var_name1,var_name2,var_name3,prefix_output)    
+   call merge_field_cdf(run_name,prefix,var_name1,var_name2,var_name3,var_name4,prefix_output)    
    
   !   prefix = "Den3"
   !   var_name1 = "Density"
@@ -111,16 +111,16 @@ contains
   !   prefix_output = "Tew_"
   ! call merge_field_cdf_Te_array(run_name,prefix1,var_name1,prefix2,var_name2,prefix_output)   
     
-     prefix = "Atm3"
-     prefix_output = "Atmw"
-   call merge_field_cdf_atm(run_name,prefix,prefix_output)    
+ !    prefix = "Atm3"
+ !    prefix_output = "Atmw"
+ !  call merge_field_cdf_atm(run_name,prefix,prefix_output)    
    
    prefix = "Mom3"
    prefix_output = "Momw"
    call merge_moment_species_cdf(run_name,prefix,prefix_output)
  
-   prefix = "Pro3"
-   prefix_output = "Prow"
+  ! prefix = "Pro3"
+  ! prefix_output = "Prow"
   ! call merge_field_cdf_pro(run_name,prefix,prefix_output) 
    
    
@@ -145,10 +145,10 @@ contains
  !! reads 1 file computed for each process
  !! and merge it to one big file
  
-  subroutine merge_field_cdf(run_name,prefix,varname1,varname2,varname3,prefix_output)
+  subroutine merge_field_cdf(run_name,prefix,varname1,varname2,varname3,varname4,prefix_output)
     character(len=*),intent(in) :: run_name
     character(len=*),intent(in) :: prefix,prefix_output
-    character(len=*),intent(in) :: varname1,varname2,varname3
+    character(len=*),intent(in) :: varname1,varname2,varname3,varname4
     !--Reading variables
     integer,parameter :: N=1,NE=2,E=3,SE=4,S=5,SW=6,W=7,NW=8
     integer :: rang,nb_procs,ndims,nb_voisin
@@ -162,14 +162,14 @@ contains
       
     !--Variables to read fields diagnostic
     real(dp),dimension(:,:,:),allocatable :: Ax_proc,Ay_proc,Az_proc
-    real(dp),dimension(:,:,:),allocatable :: Ax,Ay,Az
+    real(dp),dimension(:,:,:),allocatable :: Ax,Ay,Az,Atot
     real(dp),dimension(:),allocatable :: X_axis,Y_axis,Z_axis
     
     !--Others
     integer :: ind,deby,debz,finy,finz,iproc
     integer :: deb,fin,cumul
     integer  :: stId,ncid,ii,is,ny,nz,jj,i
-    integer  :: varid(1000),dimid(11)
+    integer  :: varid(1000),dimid(12)
     integer  :: itmp(3),var_id
     real(dp) :: rtmp(3)
     logical :: file_e
@@ -181,7 +181,7 @@ contains
     real(dp) :: n0,B0,V0,x0
    
     !--Create file name for Field (READ, proc 0) 
-    write(filename,'(a4,a1,i4.4,a1,2a)')trim(prefix),"_",0,'_',trim(run_name),".nc"
+    write(filename,'(a4,a1,i3.3,a1,2a)')trim(prefix),"_",0,'_',trim(run_name),".nc"
     write(*,*) 'merging file'  ,filename  
   
     !--Inquire if the file exists
@@ -289,9 +289,9 @@ contains
      case("titan")
        sgn = +1
        coord="TIIS"
-     case("earth")
-       sgn=-1
-       coord="GSM"
+     case("shock_CME")
+       sgn=+1
+       coord="simu"
      case default 
        planet="mars    "
        sgn = -1
@@ -304,7 +304,7 @@ contains
       nrm = B0*1.e9
      unit ="nT"
    case("Elew")
-     nrm = V0*B0
+     nrm = V0*B0*1.e6
      unit = "mV.m-1"
    case("Velw")
      nrm = V0
@@ -319,7 +319,8 @@ contains
    allocate(Ax(ncm_tot(1),ncm_tot(2),ncm_tot(3)))
    allocate(Ay(ncm_tot(1),ncm_tot(2),ncm_tot(3)))
    allocate(Az(ncm_tot(1),ncm_tot(2),ncm_tot(3)))
-   Ax = zero    ; Ay = zero     ; Az = zero    
+   allocate(Atot(ncm_tot(1),ncm_tot(2),ncm_tot(3)))
+   Ax = zero    ; Ay = zero     ; Az = zero    ; Atot = zero
    
    !-- Allocate coordinate axis
    allocate(X_axis(ncm_tot(1)));        allocate(Y_axis(ncm_tot(2)))
@@ -332,7 +333,7 @@ contains
    unit_axis = "km"
    
    if (trim(prefix) == 'Ele3') then
-     X_axis = X_axis - sgn*x0*gstep(1)/2._dp
+     X_axis = X_axis -sgn*x0*gstep(1)/2._dp
      Y_axis = Y_axis - sgn*x0*gstep(2)/2._dp
      Z_axis = Z_axis - x0*gstep(3)/2._dp
    endif  
@@ -340,27 +341,27 @@ contains
 
    ny=0
    do iproc=1,nb_procs 
-     write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
-    ! write(*,*) 'read tmp file ',filename
+     write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
+     write(*,*) 'read tmp file ',filename
      stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
      call test_cdf(stId)
      call get_simple_variable_cdf(ncid,"mpiinfo_coord",coord_proc(iproc,:ndims))
      if ((coord_proc(iproc,ndims-1)).gt.ny) ny=coord_proc(iproc,ndims-1)
      stId = nf90_close(ncid);  call test_cdf(stId)
-     !write(*,*) 'close file ',filename
+     write(*,*) 'close file ',filename
    enddo
    ny=ny+1
    nz=nb_procs/ny
   allocate(proc_tab(ny,nz))
   do iproc=1,nb_procs 
-     write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
-    ! write(*,*) 'read tmp file ',filename
+     write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
+     write(*,*) 'read tmp file ',filename
      stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
      call test_cdf(stId)
      call get_simple_variable_cdf(ncid,"mpiinfo_coord",coord_proc(iproc,:ndims))
      proc_tab(coord_proc(iproc,ndims-1)+1,coord_proc(iproc,ndims)+1)=iproc
      stId = nf90_close(ncid);  call test_cdf(stId)
-    ! write(*,*) 'close file ',filename
+     write(*,*) 'close file ',filename
    enddo
 
   ! Maintenat que l'on connait le nombre de processus qui a tourne
@@ -371,8 +372,8 @@ contains
   do ii=1,ny
     iproc=proc_tab(ii,jj)
     !--Create file name
-    write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
-   ! write(*,*) 'read file ',filename
+    write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
+    write(*,*) 'read file ',filename
     stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
     call test_cdf(stId)
     call get_simple_variable_cdf(ncid,"mpiinfo_coord",coord_proc(iproc,:ndims))
@@ -419,7 +420,7 @@ contains
    deby=deby+(ncm(2)-2)
    deallocate(Ax_proc,Ay_proc,Az_proc)
     stId = nf90_close(ncid);  call test_cdf(stId)
-   ! write(*,*) 'close file ',filename
+    write(*,*) 'close file ',filename
    enddo  
    debz=debz+(ncm(3)-2)   
    enddo
@@ -430,7 +431,7 @@ contains
    Ax = Ax*nrm*sgn
    Ay = Ay*nrm*sgn
    Az = Az*nrm
-
+   Atot = sqrt(Ax**2+Ay**2+Az**2)
    
    !--Creation du fichier de diagnostique de champ a acces sequentiel
      write_name = prefix_output//'_'//trim(run_name)//".nc"
@@ -481,7 +482,9 @@ contains
      stId = nf90_def_var(ncid, varname2, QP_NF90_DP,dimid(6:8),varid(ii))
      call test_cdf(stId); ii = ii+1                                                
      stId = nf90_def_var(ncid, varname3, QP_NF90_DP,dimid(6:8),varid(ii))
-     call test_cdf(stId)
+     call test_cdf(stId); ii = ii+1
+     !stId = nf90_def_var(ncid, varname4, QP_NF90_DP,dimid(6:8),varid(ii))
+     !call test_cdf(stId)
      
      !--Switch to write mode
        stId = nf90_enddef(ncid); call test_cdf(stId)
@@ -515,7 +518,9 @@ contains
        stId = nf90_put_var(ncid, varid(ii), Ay)
        call test_cdf(stId); ii = ii+1 
        stId = nf90_put_var(ncid, varid(ii), Az)
-       call test_cdf(stId)
+       call test_cdf(stId);ii = ii+1
+       !stId = nf90_put_var(ncid, varid(ii), Atot)
+       !call test_cdf(stId)
        
        !--Close the file
          stId = nf90_close(ncid); call test_cdf(stId)
@@ -555,7 +560,7 @@ contains
     integer :: ind,deby,debz,finy,finz,iproc
     integer :: deb,fin,cumul
     integer  :: stId,ncid,ii,is,jj,ny,nz
-    integer  :: varid(1000),dimid(11)
+    integer  :: varid(1000),dimid(12)
     integer  :: itmp(3)
     real(dp) :: rtmp(3)
     logical :: file_e
@@ -569,7 +574,7 @@ contains
     
    
     !--Create file name for Field (READ, proc 0) 
-    write(filename,'(a4,a1,i4.4,a1,2a)')trim(prefix),"_",0,'_',trim(run_name),".nc"
+    write(filename,'(a4,a1,i3.3,a1,2a)')trim(prefix),"_",0,'_',trim(run_name),".nc"
     write(*,*) 'merging file'  ,filename  
   
     !--Inquire if the file exists
@@ -676,7 +681,7 @@ contains
     
    ny=0
    do iproc=1,nb_procs 
-     write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
+     write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
      write(*,*) 'read tmp file ',filename
      stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
      call test_cdf(stId)
@@ -689,7 +694,7 @@ contains
    nz=nb_procs/ny
   allocate(proc_tab(ny,nz))
   do iproc=1,nb_procs 
-     write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
+     write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
      write(*,*) 'read tmp file ',filename
      stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
      call test_cdf(stId)
@@ -707,7 +712,7 @@ contains
   do ii=1,ny
     iproc=proc_tab(ii,jj)
     !--Create file name
-    write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
+    write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
     write(*,*) 'read file ',filename
     stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
     call test_cdf(stId)
@@ -857,7 +862,7 @@ contains
     integer :: ind,deby,debz,finy,finz,iproc
     integer :: deb,fin,cumul
     integer  :: stId,ncid,ii,is,jj,ny,nz
-    integer  :: varid(1000),dimid(11)
+    integer  :: varid(1000),dimid(12)
     integer  :: itmp(3)
     real(dp) :: rtmp(3)
     logical :: file_e
@@ -867,8 +872,8 @@ contains
     character(len=500) :: msg
    
     !--Create file name for Field (READ, proc 0) 
-    write(filename1,'(a4,a1,i4.4,a1,2a)')trim(prefix1),"_",0,'_',trim(run_name),".nc"
-    write(filename2,'(a4,a1,i4.4,a1,2a)')trim(prefix2),"_",0,'_',trim(run_name),".nc"
+    write(filename1,'(a4,a1,i3.3,a1,2a)')trim(prefix1),"_",0,'_',trim(run_name),".nc"
+    write(filename2,'(a4,a1,i3.3,a1,2a)')trim(prefix2),"_",0,'_',trim(run_name),".nc"
     write(*,*) 'merging file'  ,filename1,filename2  
   
   !---- Reading density file
@@ -968,7 +973,7 @@ contains
     
    ny=0
    do iproc=1,nb_procs 
-     write(filename1,'(a4,a1,i4.4,a1,a)') trim(prefix1),'_',iproc-1,'_',trim(run_name)
+     write(filename1,'(a4,a1,i3.3,a1,a)') trim(prefix1),'_',iproc-1,'_',trim(run_name)
      write(*,*) 'read tmp file ',filename1
      stId = nf90_open(trim(filename1)//".nc", nf90_nowrite, ncid)
      call test_cdf(stId)
@@ -981,7 +986,7 @@ contains
    nz=nb_procs/ny
   allocate(proc_tab(ny,nz))
   do iproc=1,nb_procs 
-     write(filename1,'(a4,a1,i4.4,a1,a)') trim(prefix1),'_',iproc-1,'_',trim(run_name)
+     write(filename1,'(a4,a1,i3.3,a1,a)') trim(prefix1),'_',iproc-1,'_',trim(run_name)
      write(*,*) 'read tmp file ',filename1
      stId = nf90_open(trim(filename1)//".nc", nf90_nowrite, ncid)
      call test_cdf(stId)
@@ -999,7 +1004,7 @@ contains
   do ii=1,ny
     iproc=proc_tab(ii,jj)
     !--Create file name
-    write(filename1,'(a4,a1,i4.4,a1,a)') trim(prefix1),'_',iproc-1,'_',trim(run_name)
+    write(filename1,'(a4,a1,i3.3,a1,a)') trim(prefix1),'_',iproc-1,'_',trim(run_name)
     write(*,*) 'read file ',filename1
     stId = nf90_open(trim(filename1)//".nc", nf90_nowrite, ncid)
     call test_cdf(stId)
@@ -1046,7 +1051,7 @@ contains
   do ii=1,ny
     iproc=proc_tab(ii,jj)
     !--Create file name
-    write(filename2,'(a4,a1,i4.4,a1,a)') trim(prefix2),'_',iproc-1,'_',trim(run_name)
+    write(filename2,'(a4,a1,i3.3,a1,a)') trim(prefix2),'_',iproc-1,'_',trim(run_name)
     write(*,*) 'read file ',filename2
     stId = nf90_open(trim(filename2)//".nc", nf90_nowrite, ncid)
     call test_cdf(stId)
@@ -1179,7 +1184,7 @@ contains
       integer :: ind,deby,debz,finy,finz,iproc
       integer :: deb,fin,cumul
       integer  :: stId,ncid,ii,is,jj,ny,nz,i
-      integer  :: varid(1000),dimid(11)
+      integer  :: varid(1000),dimid(12)
       integer  :: itmp(3)
       real(dp) :: rtmp(3)
       logical :: file_e
@@ -1195,7 +1200,7 @@ contains
      
       !--Create file name for Field (READ, proc 0) 
       !-- Reading electron density file
-      write(filename,'(a4,a1,i4.4,a1,2a)')trim(prefix1),"_",0,'_',trim(run_name),".nc"
+      write(filename,'(a4,a1,i3.3,a1,2a)')trim(prefix1),"_",0,'_',trim(run_name),".nc"
       write(*,*) 'merging file'  ,filename  
     
       !--Inquire if the file exists
@@ -1306,9 +1311,9 @@ contains
         case("titan")
           sgn = +1
           coord="TIIS"
-        case("earth")
-          sgn=-1
-          coord="GSM"
+        case("shock_CME")
+           sgn=+1
+           coord="simu"
         case default 
           planet="mars    "
           sgn = -1
@@ -1348,7 +1353,7 @@ contains
       
      ny=0
      do iproc=1,nb_procs 
-       write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix1),'_',iproc-1,'_',trim(run_name)
+       write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix1),'_',iproc-1,'_',trim(run_name)
        write(*,*) 'read tmp file ',filename
        stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
        call test_cdf(stId)
@@ -1361,7 +1366,7 @@ contains
      nz=nb_procs/ny
     allocate(proc_tab(ny,nz))
     do iproc=1,nb_procs 
-       write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix1),'_',iproc-1,'_',trim(run_name)
+       write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix1),'_',iproc-1,'_',trim(run_name)
        write(*,*) 'read tmp file ',filename
        stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
        call test_cdf(stId)
@@ -1379,7 +1384,7 @@ contains
     do ii=1,ny
       iproc=proc_tab(ii,jj)
       !--Create file name
-      write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix1),'_',iproc-1,'_',trim(run_name)
+      write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix1),'_',iproc-1,'_',trim(run_name)
       write(*,*) 'read file ',filename
       stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
       call test_cdf(stId)
@@ -1422,7 +1427,7 @@ contains
      ! Now we read bulk speed file
       !--Create file name for Field (READ, proc 0) 
       !-- Reading electron density file
-      write(filename,'(a4,a1,i4.4,a1,2a)')trim(prefix2),"_",0,'_',trim(run_name),".nc"
+      write(filename,'(a4,a1,i3.3,a1,2a)')trim(prefix2),"_",0,'_',trim(run_name),".nc"
       write(*,*) 'merging file'  ,filename  
     
       !--Inquire if the file exists
@@ -1448,7 +1453,7 @@ contains
     do ii=1,ny
       iproc=proc_tab(ii,jj)
       !--Create file name
-      write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix2),'_',iproc-1,'_',trim(run_name)
+      write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix2),'_',iproc-1,'_',trim(run_name)
       write(*,*) 'read file ',filename
       stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
       call test_cdf(stId)
@@ -1495,7 +1500,7 @@ contains
     ! Now we read electron pressure file
       !--Create file name for Field (READ, proc 0) 
       !-- Reading electron density file
-      write(filename,'(a4,a1,i4.4,a1,2a)')trim(prefix3),"_",0,'_',trim(run_name),".nc"
+      write(filename,'(a4,a1,i3.3,a1,2a)')trim(prefix3),"_",0,'_',trim(run_name),".nc"
       write(*,*) 'merging file'  ,filename  
     
       !--Inquire if the file exists
@@ -1521,7 +1526,7 @@ contains
     do ii=1,ny
       iproc=proc_tab(ii,jj)
       !--Create file name
-      write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix3),'_',iproc-1,'_',trim(run_name)
+      write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix3),'_',iproc-1,'_',trim(run_name)
       write(*,*) 'read file ',filename
       stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
       call test_cdf(stId)
@@ -1714,7 +1719,7 @@ contains
     integer :: ind,deby,debz,finy,finz,iproc,ish
     integer :: deb,fin,cumul
     integer  :: stId,ncid,ii,is,jj,ny,nz
-    integer  :: varid(1000),dimid(11)
+    integer  :: varid(1000),dimid(12)
     integer  :: itmp(3)
     real(dp) :: rtmp(3)
     logical :: file_e
@@ -1727,7 +1732,7 @@ contains
     character(len=11),dimension(:),allocatable:: name_dens
    
     !--Create file name for Field (READ, proc 0) 
-    write(filename,'(a4,a1,i4.4,a1,2a)')trim(prefix),"_",0,'_',trim(run_name),".nc"
+    write(filename,'(a4,a1,i3.3,a1,2a)')trim(prefix),"_",0,'_',trim(run_name),".nc"
     write(*,*) 'merging file'  ,filename  
   
     !--Inquire if the file exists
@@ -1823,7 +1828,7 @@ contains
    ! on lit les autres fichiers
    ny=0
    do iproc=1,nb_procs 
-     write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
+     write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
      write(*,*) 'read tmp file ',filename
      stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
      call test_cdf(stId)
@@ -1836,7 +1841,7 @@ contains
    nz=nb_procs/ny
   allocate(proc_tab(ny,nz))
   do iproc=1,nb_procs 
-     write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
+     write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
      write(*,*) 'read tmp file ',filename
      stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
      call test_cdf(stId)
@@ -1854,7 +1859,7 @@ contains
   do ii=1,ny
     iproc=proc_tab(ii,jj)
     !--Create file name
-    write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
+    write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
     write(*,*) 'read file ',filename
     stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
     call test_cdf(stId)
@@ -1956,7 +1961,7 @@ contains
    
    deallocate(Ax)
    deallocate(voisin_proc,dims,coord_proc,nptot_proc)
-   
+   deallocate(name_dens) 
   
   end subroutine merge_field_cdf_atm
   
@@ -1987,7 +1992,7 @@ contains
     integer :: ind,deby,debz,finy,finz,iproc,ish
     integer :: deb,fin,cumul
     integer  :: stId,ncid,ii,is,ny,nz,jj,iii,i
-    integer  :: varid(1000),dimid(11)
+    integer  :: varid(1000),dimid(12)
     integer :: dimion(5),dimchar
     integer  :: itmp(3),var_id
     real(dp) :: rtmp(3)
@@ -2005,7 +2010,7 @@ contains
     character(len=8) :: planet 
    
     !--Create file name for Field (READ, proc 0) 
-    write(filename,'(a4,a1,i4.4,a1,2a)')trim(prefix),"_",0,'_',trim(run_name),".nc"
+    write(filename,'(a4,a1,i3.3,a1,2a)')trim(prefix),"_",0,'_',trim(run_name),".nc"
     write(*,*) 'merging file'  ,filename  
   
     !--Inquire if the file exists
@@ -2117,9 +2122,9 @@ contains
         case("titan")
           sgn = +1
           coord="TIIS"
-        case("earth")  
-          sgn = -1
-          coord = "GSM"
+        case("shock_CME")  
+          sgn = +1
+          coord = "simu"
         case default 
           planet="mars    "
           sgn = -1
@@ -2175,7 +2180,7 @@ contains
 
    ny=0
    do iproc=1,nb_procs 
-     write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
+     write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
      write(*,*) 'read tmp file ',filename
      stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
      call test_cdf(stId)
@@ -2188,7 +2193,7 @@ contains
    nz=nb_procs/ny
   allocate(proc_tab(ny,nz))
   do iproc=1,nb_procs 
-     write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
+     write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
      write(*,*) 'read tmp file ',filename
      stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
      call test_cdf(stId)
@@ -2206,7 +2211,7 @@ contains
   do ii=1,ny
     iproc=proc_tab(ii,jj)
     !--Create file name
-    write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
+    write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
     write(*,*) 'read file ',filename
     stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
     call test_cdf(stId)
@@ -2462,7 +2467,7 @@ end subroutine merge_moment_species_cdf
     integer :: ind,deby,debz,finy,finz,iproc,ish
     integer :: deb,fin,cumul
     integer  :: stId,ncid,ii,is
-    integer  :: varid(1000),dimid(11)
+    integer  :: varid(1000),dimid(12)
     integer  :: itmp(3)
     real(dp) :: rtmp(3)
     logical :: file_e
@@ -2475,7 +2480,7 @@ end subroutine merge_moment_species_cdf
     character(len=11),dimension(:),allocatable:: name_dens
    
     !--Create file name for Field (READ, proc 0) 
-    write(filename,'(a4,a1,i4.4,a1,2a)')trim(prefix),"_",0,'_',trim(run_name),".nc"
+    write(filename,'(a4,a1,i3.3,a1,2a)')trim(prefix),"_",0,'_',trim(run_name),".nc"
     write(*,*) 'merging file'  ,filename  
   
     !--Inquire if the file exists
@@ -2572,7 +2577,7 @@ end subroutine merge_moment_species_cdf
    do iproc=1,nb_procs 
  
     !--Create file name
-    write(filename,'(a4,a1,i4.4,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
+    write(filename,'(a4,a1,i3.3,a1,a)') trim(prefix),'_',iproc-1,'_',trim(run_name)
     write(*,*) 'read file ',filename
     !--Open NetCDF file for read fields 
     stId = nf90_open(trim(filename)//".nc", nf90_nowrite, ncid)
@@ -2599,7 +2604,7 @@ end subroutine merge_moment_species_cdf
  
    nptot = sum(nptot_proc)  
    
-   allocate(Ax(ncm_tot(1),ncm_tot(2),ncm_tot(3),n_spe_pp))
+!   allocate(Ax(ncm_tot(1),ncm_tot(2),ncm_tot(3),n_spe_pp))
    Ax = zero
    
      !--Allocation of global arrays
@@ -2684,7 +2689,7 @@ end subroutine merge_moment_species_cdf
    deallocate(Ax_proc)
    deallocate(Ax)
    deallocate(voisin_proc,dims,coord_proc,nptot_proc)
-   
+   deallocate(name_dens)
   
   end subroutine merge_field_cdf_pro
     
@@ -2709,7 +2714,7 @@ end subroutine merge_moment_species_cdf
  character(len=40),intent(out) :: name_file 
  character(len=*),intent(in) :: filwrt,prefix 
   
-  write(name_file,'(a4,a1,i4.4,a1,a)')trim(prefix),"_",me,'_',trim(filwrt)
+  write(name_file,'(a4,a1,i3.3,a1,a)')trim(prefix),"_",me,'_',trim(filwrt)
   
 #ifdef HAVE_NETCDF
     name_file = trim(name_file)//".nc"

@@ -216,7 +216,7 @@ contains
 
   type(species_type),intent(inout) :: species
 
-  !--Allocation of arrays for species of solar wind
+  !--Allocation of arrays for species of solaire wind
   deallocate(species%S)   
   deallocate(species%vplus)
 

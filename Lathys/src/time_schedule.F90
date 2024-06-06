@@ -10,7 +10,7 @@ module time_schedule
  use particle_creation,only     : new_particles
  use particle_com
  use defs_parametre,only             : dt,nsub,ntest,ipe,idisp,t_init_dip
- use defs_variable,only : by0,bz0,by1,bz1,vxmean
+ use defs_variable,only : by0,bz0
  use m_timing,only              : time_get
  use m_writeout
  use time_variation
@@ -94,7 +94,7 @@ contains
  !********************************** CAM3 *******************************************
  subroutine cam3(tmax)
 !  use diag_energy,only   : energy_proc
-  use defs_parametre,only : planetname,gstep,pos_plan
+  use defs_parametre,only : planetname
   use particle,only      : move 
   use field_b,only       : testBfield
   use field,only         : calc_field
@@ -105,10 +105,9 @@ contains
        &                   diag,diag_pickup,&
        &                   s_min_loc,s_max_loc,&
        &                   t,diag_info,&
-       &                   Preg,index_exit,Bfield_0,&
-       &                   Spe, vel
+       &                   Preg,index_exit,Bfield_0
   use field_lissage
-
+ 
   real(dp),intent(in) :: tmax
   integer :: nn
   character(len=200) :: msg
@@ -160,108 +159,29 @@ contains
 
 !   call energy_proc(Preg,diag_info)
 
-   if(mod(iter, 40*ntest) == 0) then
+   if(mod(iter,ntest) == 0) then
     call testBfield(Bfield,Bfield_h,t,iter,mpiinfo)
     !--Smoothing Bfield in the last part of the box (along the x-axis)
-    call smth_func(Bfield,nc,mpiinfo)
-    call smth_func(Bfield_h,nc,mpiinfo)
-    !--write magnetic field at specific location
-    !call write_temporal_B()
+    if ((mod(iter,10*ntest) ==0).and.(TRIM(planetname)== "ganymede")) then
+      call smth_func(Bfield,nc,mpiinfo)
+      call smth_func(Bfield_h,nc,mpiinfo)
+    else
+      call smth_func(Bfield,nc,mpiinfo)
+      call smth_func(Bfield_h,nc,mpiinfo)
+    endif
    endif
 
    diag(iter+1) = nptot
    diag_pickup(iter+1) = count(particule(1:nptot)%exc/=zero)
    
    ! re-initiliase plasma incident info if temporal variation are loaded
-   call set_time_variation(by0,bz0,by1,bz1,vxmean,Spe,iter)
+   call set_time_variation(by0,bz0,iter)
 
   enddo
   
   __GETTIME(6,2)!--Timer stop
   __WRT_DEBUG_OUT("cam3")
-
-
-
  end subroutine cam3
-
- subroutine write_temporal_B()
-
-  use defs_variable, only : Bfield, vel, dn
-  use defs_variable, only : s_min_loc, s_max_loc, t
-  use defs_parametre, only : pos_plan, gstep
-  
-
-  real :: x_gsm, y_gsm, z_gsm
-  real :: x_sim, y_sim, z_sim
-  character(len=150):: file_name, FN
-  integer :: ix_box, iy_box, iz_box
-  logical :: L_open
-  integer :: file_count
-
-  file_count = 0  
-
- ! write(*,*) "pos_plan:", pos_plan
- ! write(*,*) "s_min_loc(2):", s_min_loc(2)
-
-  do ix_box = 1, int((s_max_loc(1) - s_min_loc(1))/gstep(1))
-    do iy_box = 1, int((s_max_loc(2) - s_min_loc(2))/gstep(2))
-      do iz_box = 1, int((s_max_loc(3) - s_min_loc(3))/gstep(3))
-
-        x_sim = s_min_loc(1) + ix_box*gstep(1)
-        y_sim = s_min_loc(2) + iy_box*gstep(2)
-        z_sim = s_min_loc(3) + iz_box*gstep(3)
-
-!        x_sim = s_min_loc(1) + (ix_box-1)*gstep(1)
-!        y_sim = s_min_loc(2) + (iy_box-1)*gstep(2)
-!        z_sim = s_min_loc(3) + (iz_box-1)*gstep(3)
-
-        x_gsm =  pos_plan(1)-x_sim
-        y_gsm =  pos_plan(2)-y_sim
-        z_gsm = -pos_plan(3)+z_sim
-
-        if (((sqrt(x_gsm**2+y_gsm**2+z_gsm**2)<120) .and. &
-               (mod(int(x_gsm), 10)==0 .and. &
-                mod(int(y_gsm), 25)==0 .and. &
-                mod(int(z_gsm), 25)==0)) .or. &
-             (mod(int(x_gsm), 750)==0 .and. &
-              mod(int(y_gsm), 100)==0 .and. &
-              mod(int(z_gsm), 100)==0)) then
-           
-            write(file_name, '(A6,I5,A2,I5,A2,I5,A2,A4)') &
-                              "Btime_",int(x_gsm),"x_", &
-                                       int(y_gsm),"y_", &
-                                       int(z_gsm),"z_",'.txt'
-            !--By creating file_name and file_count at the same time
-            !--we ensure they have a one-to-one correspondancy
-            file_name = trim(file_name)
-            file_count = file_count+1
-            open(UNIT=80+file_count,FILE=file_name, &
-                & status="old", position="append", action="write")
-
-            inquire(UNIT=80+file_count, NAME=FN, OPENED=L_open)
-
-!            write(*,*)  "unit", 80+file_count, &
-!                      & "position", int(x_gsm), int(y_gsm), int(z_gsm), &
-!                      & "isopen", L_open,"has name", FN
-
-            write(UNIT=80+file_count,FMT=*) 'time', t,  &
-                              & 'B_field%xyz', &
-                              & Bfield%x(ix_box,iy_box,iz_box), &
-                              & Bfield%y(ix_box,iy_box,iz_box), &
-                              & Bfield%z(ix_box,iy_box,iz_box), &
-                              & 'velocity%xyz', &
-                              & vel%x(ix_box,iy_box,iz_box), &
-                              & vel%y(ix_box,iy_box,iz_box), &
-                              & vel%z(ix_box,iy_box,iz_box), &
-                              & 'density', &
-                              & dn(ix_box,iy_box,iz_box)
-        endif
-
-      enddo
-    enddo
-  enddo
- end subroutine write_temporal_B
-
  !***************************** END CAM3 ********************************************
 
  !******************************* LAST **********************************************

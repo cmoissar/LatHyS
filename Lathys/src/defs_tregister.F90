@@ -49,120 +49,56 @@ contains
   use m_writeout
 
   integer,optional,intent(in) :: ifout
-  integer :: jreg
   type(treg_type),intent(inout) :: reg_tm
 
   integer :: ireg,unit,factor
   character(len=200) :: msg
-
-  integer:: tmax
-
-  !--When doing a restart, what's the time of the last output file you have?
-  !--IF NOT DOING A RESTART, KEEP AT 10
-  integer::t_last_dump=10
-
-  integer::div1=20
-  integer::until1=100
-  integer::div2=5
-  integer::until2=200
-  integer::div3=1
-  integer::until3=220
-  integer::div4=5
-  integer::until4=240
-  integer::div5=10
-  integer::until5
-
-  integer::last_until
-  integer::nreg
-
-  tmax = nhm*dt
-  until5 = tmax
-
+  
   if(present(ifout)) then 
    unit = 6
   else
    unit = qp_out
   endif
-  
+   
 
-  !--Number of diagnostics to do
-  reg_tm%nreg = 1  !reg_tm%time(1)=t_last_dump
+  reg_tm%nreg = 2 !--Number of diagnostics to do
 
-  last_until = t_last_dump
-  if (until1 > last_until) then
-    reg_tm%nreg = reg_tm%nreg + (until1 - last_until) / div1
-    if (mod(until1 - last_until, div1) .ne. 0) reg_tm%nreg = reg_tm%nreg + 1
-  endif
-  last_until = max(until1, last_until)
-  if (until2 > last_until) then
-    reg_tm%nreg = reg_tm%nreg + (until2 - last_until)/div2
-    if (mod(until2 - last_until, div2) .ne. 0) reg_tm%nreg = reg_tm%nreg + 1
-  endif
-  last_until = max(until2, last_until)
-  if (until3 > last_until) then
-    reg_tm%nreg = reg_tm%nreg + (until3 - last_until)/div3
-    if (mod(until3 - last_until, div3) .ne. 0) reg_tm%nreg = reg_tm%nreg + 1
-  endif
-  last_until = max(until3, last_until)
-  if (until4 > last_until) then
-    reg_tm%nreg = reg_tm%nreg + (until4 - last_until)/div4
-    if (mod(until4 - last_until, div4) .ne. 0) reg_tm%nreg = reg_tm%nreg + 1
-  endif
-  last_until = max(until4, last_until)
-  if (until5 > last_until) then
-    reg_tm%nreg = reg_tm%nreg + (until5 - last_until)/div5
-    if (mod(until5 - last_until, div5) .ne. 0) reg_tm%nreg = reg_tm%nreg + 1
-  endif
-  
   nullify(reg_tm%time);  allocate(reg_tm%time(0:reg_tm%nreg))
+  
   nullify(reg_tm%file);  allocate(reg_tm%file(0:reg_tm%nreg))
 
   !--Temps des diagnostiques
   reg_tm%time( 0) = 0._dp !--DO NOT CHANGE  0.
-  reg_tm%time( 1) = t_last_dump
- 
-  do jreg=1, reg_tm%nreg-1
+  reg_tm%time( 1) = 5._dp
+  reg_tm%time( 2) = 10._dp 
+  !reg_tm%time( 2) = 200._dp 
+  !reg_tm%time( 3) = 300._dp !if restart
+  !reg_tm%time( 4) = 400._dp
+  !reg_tm%time( 5) = 500._dp
+  !reg_tm%time( 6) = 600._dp
+  !reg_tm%time( 7) = 700._dp
+!  reg_tm%time( 6) = 600._dp
+!  reg_tm%time( 1) = real(nhm,dp)*dt
 
-    if (reg_tm%time(jreg) + div1 <= until1) then
-      reg_tm%time(jreg+1) = reg_tm%time(jreg) + div1
-    endif
-    if (reg_tm%time(jreg) < until1 .and. until1 < reg_tm%time(jreg)+div1) then
-      reg_tm%time(jreg+1) = until1
-    endif
+  !reg_tm%time( 1) = real(nhm,dp)*dt/5.
+  !reg_tm%time( 2) = real(nhm,dp)*dt/5.*2.
+  !reg_tm%time( 3) = real(nhm,dp)*dt/5.*3.
+  !reg_tm%time( 4) = real(nhm,dp)*dt/5.*4.
+  !reg_tm%time( 5) = real(nhm,dp)*dt
+  !reg_tm%time( 1) = real(nhm,dp)*dt/13.
+  !reg_tm%time( 2) = real(nhm,dp)*dt/13.*2.
+  !reg_tm%time( 3) = real(nhm,dp)*dt/13.*3.
+  !reg_tm%time( 4) = real(nhm,dp)*dt/13.*4.
+  !reg_tm%time( 5) = real(nhm,dp)*dt/13.*5.
+  !reg_tm%time( 6) = real(nhm,dp)*dt/13.*6.
+  !reg_tm%time( 7) = real(nhm,dp)*dt/13.*7.
+  !reg_tm%time( 8) = real(nhm,dp)*dt/13.*8.
+  !reg_tm%time( 9) = real(nhm,dp)*dt/13.*9.
+  !reg_tm%time(10) = real(nhm,dp)*dt/13.*10.
+  !reg_tm%time(11) = real(nhm,dp)*dt/13.*11.
+  !reg_tm%time(12) = real(nhm,dp)*dt/13.*12.
+  !reg_tm%time(13) = real(nhm,dp)*dt
 
-    if (until1 >= until2) cycle
-    if (until1 <= reg_tm%time(jreg) .and. reg_tm%time(jreg) + div2 <= until2) then
-      reg_tm%time(jreg+1) = reg_tm%time(jreg) + div2
-    endif
-    if (reg_tm%time(jreg) < until2 .and. until2 < reg_tm%time(jreg)+div2) then
-      reg_tm%time(jreg+1) = until2
-    endif
-   
-    if (until2 >= until3) cycle
-    if (until2 <= reg_tm%time(jreg) .and. reg_tm%time(jreg) + div3 <= until3) then
-      reg_tm%time(jreg+1) = reg_tm%time(jreg) + div3
-    endif
-    if (reg_tm%time(jreg) < until3 .and. until3 < reg_tm%time(jreg)+div3) then
-      reg_tm%time(jreg+1) = until3
-    endif
-
-    if (until3 >= until4) cycle
-    if (until3 <= reg_tm%time(jreg) .and. reg_tm%time(jreg) + div4 <= until4) then
-      reg_tm%time(jreg+1) = reg_tm%time(jreg) + div4
-    endif
-    if (reg_tm%time(jreg) < until4 .and. until4 < reg_tm%time(jreg)+div4) then
-      reg_tm%time(jreg+1) = until4
-    endif
-
-    if (until4 >= until5) cycle
-    if (until4 <= reg_tm%time(jreg) .and. reg_tm%time(jreg) + div5 <= until5) then
-      reg_tm%time(jreg+1) = reg_tm%time(jreg) + div5
-    endif
-    if (reg_tm%time(jreg) < until5 .and. until5 < reg_tm%time(jreg)+div5) then
-      reg_tm%time(jreg+1) = until5
-    endif
-
-  enddo
 
   !--Factor to put any file name >1
   factor = 1
@@ -170,9 +106,9 @@ contains
    factor = factor *10
   end do
 
-  if(maxval(reg_tm%time)>(real(nhm,dp)+1)*dt) then
+  if(maxval(reg_tm%time)>real(nhm,dp)*dt) then
    print *," ERROR : diagnostic time > max time",nhm,dt
-   print *," To Solve: see in defs_tregister.F90"
+   print *," To Solve: see in m_tregister.F90"
    stop
   endif
 

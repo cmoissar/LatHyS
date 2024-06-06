@@ -14,7 +14,6 @@ module atm_charge_exchange
  use defs_species
  use defs_atmospheretype
  use defs_particletype
- use defs_atmospheretype
  use defs_parametre
  use m_writeout
  use m_timing
@@ -37,7 +36,8 @@ contains
    
   integer,intent(in) :: nn,ijk(3)
   integer,intent(inout) :: irand,pickup
-  real(dp),intent(in) :: qsm,v_p(3),w(8)
+  real(dp),intent(in) :: qsm,v_p(3)
+  real(dp),intent(in) :: w(8)
   type(species_type),intent(in) :: Spe
   type(particletype),intent(inout) :: particule(:)
   type(atmosphere_type),intent(in) ::atmosphere

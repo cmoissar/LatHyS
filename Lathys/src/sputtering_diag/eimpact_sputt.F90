@@ -11,7 +11,7 @@ module eimpact_sputt
  use defs_parametre,only : fildat,dt,ns,npm,gstep
  use m_writeout
  use ieee_arithmetic 
- #ifdef HAVE_NETCDF 
+#ifdef HAVE_NETCDF 
  use netcdf
  use defs_basic_cdf
  use diag_wrt_common_cdf
@@ -495,12 +495,12 @@ contains
   
   write(name_file,'(a4,a1,i3.3,a1,a)')trim(prefix),"_",me,'_',trim(filwrt)
   
- #ifdef HAVE_NETCDF
+#ifdef HAVE_NETCDF
     name_file = trim(name_file)//".nc"
- #endif
+#endif
     
    
  end subroutine create_file_diag
  
- #endif
+#endif
  end module eimpact_sputt

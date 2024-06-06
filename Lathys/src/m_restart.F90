@@ -1,6 +1,7 @@
 !!=============================================================
 !!=============================================================
 module m_restart
+ use mpi
  use defs_basis
  use defs_mpitype,only     : mpiinfo
  use defs_parametre
@@ -56,7 +57,7 @@ contains
   real(dp) :: rstate_1(97)
 #ifdef HAVE_NETCDF
   integer :: ncid,stId,ii
-  integer :: dimid(14),varid(115),dimidloc(3)
+  integer :: dimid(12),varid(115),dimidloc(3)
   integer,allocatable :: dimspec(:)
 #else
   integer :: iunit
@@ -75,7 +76,7 @@ contains
   endif
 
   !--Create the file name
-  write(msg,'(a2,i4.4,a1,a)')"r_",mpiinfo%me,'_',trim(namfilrest)
+  write(msg,'(a2,i3.3,a1,a)')"r_",mpiinfo%me,'_',trim(namfilrest)
   namfilrest = trim(msg)
 
   call wrt_double(qp_out,"Restart file name : "//namfilrest,wrtscreen,wrtdisk)
@@ -425,7 +426,7 @@ contains
 
   use defs_mpitype,only     : mpiinfo
   use defs_species
-  use mpi
+  !use mpi
 
   integer,intent(out) :: istate_1(4)
   real(dp),intent(out) :: rstate_1(97)
@@ -449,7 +450,7 @@ contains
   endif
 
   !--Create the file name
-  write(msg,'(a2,i4.4,a1,a)')"r_",mpiinfo%me,'_',trim(namfilrest)
+  write(msg,'(a2,i3.3,a1,a)')"r_",mpiinfo%me,'_',trim(namfilrest)
 
 #ifdef HAVE_NETCDF
   namfilrest = trim(msg)//".nc"
@@ -586,7 +587,7 @@ contains
   read(iunit) vel%x,vel%y,vel%z
   read(iunit) vela%x,vela%y,vela%z
   read(iunit) dn,dna
-  write(msg,'(a,i4.4)')"End of reading process fiels : ",mpiinfo%me
+  write(msg,'(a,i3)')"End of reading process fiels : ",mpiinfo%me
   call wrt_double(6,msg,wrtscreen,wrtdisk)
 
   !--Particles
@@ -599,7 +600,7 @@ contains
   !value and the actual one in parameter module
   nhm = max(nhm,nhm_loc)
 
-  write(msg,'(a,i4.4)')" End of reading process fiels : ",mpiinfo%me
+  write(msg,'(a,i3)')" End of reading process fiels : ",mpiinfo%me
   call wrt_double(6,msg,wrtscreen,wrtdisk)
 
  end subroutine read_restart

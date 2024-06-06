@@ -187,6 +187,7 @@ contains
    print '(a)', "                               mars3try"
    print '(a)', "                               titan"
    print '(a)', "                               shock"
+   print '(a)', "                               venus"
    print '(a)', "  -r, --restart         set the restart,"
    print '(a)', "                        followed by:"
    print '(a)', "                            0, restart is off"

@@ -476,8 +476,8 @@ end subroutine feed_ionosphere_mercure
   !Spe%P%dipole(3) = Spe%P%centr(3)+484./Spe%ref%c_omegapi
   !print*,'-------dipole------',Spe%P%dipole
 
-   !call add_dipole_generic(Bfield,ncm,Spe,gstep,s_min_loc,196.e-9,180.,0.)
-   call add_dipquad(Bfield,ncm,Spe,gstep,s_min_loc,196.e-9,180.,0.,0.72,0.38)
+   call add_dipole_generic(Bfield,ncm,Spe,gstep,s_min_loc,196.e-9,180.,0.)
+   !call add_dipquad(Bfield,ncm,Spe,gstep,s_min_loc,196.e-9,180.,0.,0.72,0.38)
 
   __WRT_DEBUG_OUT("add_b_dipole_mercure")
  end subroutine add_b_int_mercure

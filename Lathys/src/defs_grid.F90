@@ -115,7 +115,7 @@ contains
   !--Setting cell number equal to defined in parameter
   nc_tot = (/ ncx0,ncy0,ncz0 /)
 
-  !--Control if the number of cells is compatible with the cartesian grid
+  !--Control if the number of cells  is copatible with the cartesian grid
   if (mod(nc_tot(2),mpiinfo%dims(1)) /= 0) then
    nc_tot(2) = int(nc_tot(2)/mpiinfo%dims(1))*mpiinfo%dims(1)+mpiinfo%dims(1)
    write(msg,'(a,i6)')' WARNING : Y NUMBER CELL CHANGE : ',nc_tot(2)
@@ -190,13 +190,13 @@ contains
   enddo
   !--On definit le nombre particule par cellule maximum
   npm = int(product(real(nc_tot,dp))*real(n_part_max,dp)/real(nproc,dp))
-  !--Déclaration du nombre maximal de points de grille
+  !--Déclaration du nombre maximale de points de grilles
   ncm_tot = nc_tot + 2
   nxyzm = product(ncm_tot)
   ncross = 2*32*int((ncm_tot(2)*ncm_tot(3) + ncm_tot(2)*ncm_tot(1) + ncm_tot(3)*ncm_tot(1))/nproc)
   !--Dimensions of "full" grid (BX,BY,BZ,DEN,UX,UY,UZ,PE)
   nc1_tot = nc_tot + 1
-  !--Nombre de cellule en X et en Y pour chaque processeur
+  !--Nombre de cellule en X et en Y pour cahque processeur
   nc(1) = nc_tot(1)
   nc(2) = cl_y(mpiinfo%coord(1)+1)!--int(nc_tot(2)/mpiinfo%dims(1))
   nc(3) = cl_z(mpiinfo%coord(2)+1)!--int(nc_tot(3)/mpiinfo%dims(2))

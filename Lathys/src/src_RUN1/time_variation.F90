@@ -1,0 +1,183 @@
+module time_variation
+
+use defs_basis
+use defs_parametre
+use defs_species
+use defs_variable
+use m_writeout
+#ifdef DIntelFortran
+use ifport
+#endif
+
+#include "q-p_common.h"
+
+implicit none
+#ifdef PGIFortran
+#include "lib3f.h"
+#endif
+
+private 
+
+public :: &
+
+	init_change_CME,      &!--initialization of temporal change in the incident plasma
+	temporal_change_CME    !--apply change in the time loop
+
+
+contains
+
+subroutine define_Bfield_CME(species)
+
+	type(species_type),intent(inout) :: species
+
+	real(dp)    :: A_MC(3),T_MC(3),R_MC(3) ! Frame centered on the flux rope axis, where A is the axis direction, R the radial direction and T the tangential direction
+	real(dp)    :: mat_p(3,3)              ! Transformation matrix from the flux rope frame to the simulation cartesian frame
+	integer(dp) :: i                       ! Time step increment
+	real(dp)    :: x_c,y_c                 ! Intersection of the flux rope axis with the XY plane at the beginning of the run
+	real(dp)    :: psi_c                   ! Direction of the magnetic cloud axis (latitude)
+	real(dp)    :: Rmax,a,H_MC,B_0         ! Flux rope parameters: Rmax=radius, a=constant, H=handedness and B_0=maximum magnetic field amplitude
+	real(dp)    :: R                       ! Distance between the flux rope axis and the X=0 plane of the simulation box.
+	real(dp)    :: BR,BA,BT                ! Magnetic field components in the frame of the magnetic cloud
+	real(dp)    :: B_xyz(3),norm_B         ! Magnetic field components in the simulation cartesian frame
+	integer(dp) :: ntr                     ! number of time step during which the magnetic field amplitude increases from the IMF value to its value at the CME front
+	real(dp)    :: Bmag                    ! Magnetic field amplitude which will increase from the IMF value to the value at the CME front
+	real(dp)    :: Bcme_over_Bimf          ! Ratio of the magnetic field amplitude at the CME front over the IMF amplitude.
+	integer(dp) :: nbeginning              ! number of time steps during which the solar wind parameters are kept constant at the beginning of the run, to create the bow shock
+	integer(dp) :: nMC                     ! number of time steps during the magnetic cloud
+ __WRT_DEBUG_IN("define_Bfield_CME")
+
+	nbeginning = 2000
+	ntr = ceiling(20._dp*pi/dt)
+	nMC = 4632
+
+	Bcme_over_Bimf = three
+
+	psi_c = 0.      
+	! The magnetic cloud axis must lie in the Y-Z plane, because the Bx component cannot change, so its longitude is always 90°
+
+	x_c = 1320.
+	y_c = 0._dp         
+
+	Rmax = x_c                              ! radius of the magnetic cloud
+	a = 2.4048/Rmax                         ! constant set to have BA=0 when R=Rmax
+	H_MC = 1._dp                            ! Handedness of the magnetic cloud (+1 or -1)
+	
+	B_0 = 20.                               ! value of the maximum magnetic field in the cloud (at the cloud's axis)
+
+	R_MC(1) = 1._dp           ! Radial direction
+	R_MC(2) = 0._dp
+	R_MC(3) = 0._dp
+	
+	A_MC(1) = 0._dp           ! Vector A along the magnetic cloud axis
+	A_MC(2) = sin(psi_c)      ! A is in the Y-Z plane
+	A_MC(3) = cos(psi_c)
+	
+	T_MC(1) = 0._dp           ! Tangential direction: since the radial direction is X
+	T_MC(2) = A_MC(3)         ! T is also in the Y-Z plane and corresponds to a rotation
+	T_MC(3) = -A_MC(2)        ! of -pi/2 of the A vector.
+	
+	mat_p(:,1) = A_MC         ! Transformation matrix to move from the frame of the magnetic cloud
+	mat_p(:,2) = R_MC         ! to the simulation cartesian frame
+	mat_p(:,3) = T_MC
+
+	!****************************************************************!
+	!---------- Increase of the magnetic field amplitude-------------!
+	!****************************************************************!
+
+
+	if(ntr == 1) then
+		Bmag = one        ! If ntr=1 the magnetic field amplitude does not increase
+	else
+
+		do i=1,nbeginning
+			by_change(i) = sin(psi*deg_to_rad)*sin(phi*deg_to_rad)
+			bz_change(i) = cos(psi*deg_to_rad)
+		enddo
+		do i=1,ntr
+
+
+			!****************************************************************!
+			! - when i = 1 the tanh is equal to -1 and Bmag = B_IMF = 1
+			! - when i = ntr the tanh is equal to 1 and Bmag = B_CME
+			!****************************************************************!			
+
+			!Bmag = (Bcme_over_Bimf+one)*half + (Bcme_over_Bimf-one)*half*tanh((12._dp/(ntr-one))*i+(6._dp*(one+ntr)/(one-ntr)))   
+			
+			Bmag = (Bcme_over_Bimf+one)*half + (Bcme_over_Bimf-one)*half*tanh((6._dp/(ntr-one))*i+(3._dp*(one+ntr)/(one-ntr)))  
+
+			by_change(i+nbeginning) = Bmag*sin(psi*deg_to_rad)*sin(phi*deg_to_rad)
+			bz_change(i+nbeginning) = Bmag*cos(psi*deg_to_rad)
+			!write(*,*)i,by_change(i),bz_change(i),Bmag
+		enddo
+
+	endif
+
+	!stop
+
+	!****************************************************************!
+	!---------- Rotation of the magnetic field direction ------------!
+	!****************************************************************!
+
+	do i=1,nMC
+
+		!by_change(i) = by_change(ntr)
+		!bz_change(i) = bz_change(ntr)
+			
+		R = x_c - (i-ntr)*dt*species%S(1)%vxs   ! distance from the magnetic cloud axis at iteration i
+
+		BA = B_0!*besj0(a*R)      ! Magnetic field components inside the cloud (Burlaga et al. 1988)
+		BT = B_0!*H_MC*besj1(a*R)
+		BR = 0._dp
+	
+		B_xyz = MATMUL(mat_p,[BA,BR,BT])   ! Back to cartesian coordinates
+		
+		! Initially we will keep the magnetic field amplitude constant throughout the magnetic cloud, so we normalize the components
+		norm_B = sqrt(B_xyz(1)*B_xyz(1)+B_xyz(2)*B_xyz(2)+B_xyz(3)*B_xyz(3))
+		
+		by_change(i+nbeginning+ntr) = B_xyz(2)*Bmag/norm_B     ! Time-varying magnetic field components, with a constant amplitude
+		bz_change(i+nbeginning+ntr) = B_xyz(3)*Bmag/norm_B	! corresponding to the reference IMF strength defined in the environment.
+	
+		!write(*,*)i,by_change(i),bz_change(i),sqrt(by_change(i)*by_change(i)+bz_change(i)*bz_change(i)),R
+	enddo
+
+	do i=1,nhm-nbeginning-ntr-nMC
+		by_change(i+nbeginning+ntr+nMC) = by_change(nbeginning+ntr+nMC)
+		bz_change(i+nbeginning+ntr+nMC) = bz_change(nbeginning+ntr+nMC)
+	enddo
+
+
+
+	!stop
+
+ __WRT_DEBUG_OUT("define_Bfield_CME")
+
+end subroutine define_Bfield_CME
+
+subroutine Init_change_CME(species)
+
+type(species_type),intent(inout) :: species
+
+ __WRT_DEBUG_IN("Init_change_CME")
+
+	allocate(by_change(nhm))
+	allocate(bz_change(nhm))
+	call define_Bfield_CME(species)
+
+ __WRT_DEBUG_OUT("Init_change_CME")
+
+end subroutine Init_change_CME
+
+
+subroutine temporal_change_CME(by0,bz0,iter)
+real(dp),intent(inout) :: by0,bz0
+integer,intent(in) :: iter
+
+ __WRT_DEBUG_IN("temporal_change_CME")
+
+	by0 = by_change(iter)
+	bz0 = bz_change(iter)
+
+ __WRT_DEBUG_OUT("temporal_change_CME")
+
+end subroutine temporal_change_CME
+end module time_variation

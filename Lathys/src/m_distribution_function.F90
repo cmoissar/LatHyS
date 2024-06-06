@@ -396,7 +396,7 @@ end subroutine wrt_distribution_function
   character(len=40),intent(out) :: name_file 
   character(len=*),intent(in) :: filwrt 
   
-  write(name_file,'(a8,i4.4,a1,a)')"Distrib_",me,'_',trim(filwrt)
+  write(name_file,'(a8,i3.3,a1,a)')"Distrib_",me,'_',trim(filwrt)
 #ifdef HAVE_NETCDF
   name_file = trim(name_file)//".nc"
 #endif
@@ -425,14 +425,16 @@ end subroutine wrt_distribution_function
    
    select case(trim(planetname))
    case("mars")
-     nb_species = 6 
+      nb_species = 6
+   case("venus")
+      nb_species = 6
    case("titan")
       nb_species = 3
    case("mercure")
       nb_species = 2
    case("ganymede")
       nb_species = 5
-   case("earth")
+   case("shockCME")
       nb_species=1
    case default
       write(*,*) &
@@ -499,6 +501,42 @@ end subroutine wrt_distribution_function
      species_info(6)%Ion_label = "Hpl"
      species_info(6)%qsm_value = 1._dp
      species_info(6)%origin_value = 1
+
+  case("venus")
+     !  H+ sw
+     species_info(1)%Ion_label = "Hsw"
+     species_info(1)%qsm_value = 1._dp/1._dp
+     species_info(1)%origin_value = 0
+     !    species_info(1)%CE_value = 0
+
+      ! He++ sw
+     species_info(2)%Ion_label = "Hesw"
+     species_info(2)%qsm_value = 2._dp/4._dp
+     species_info(2)%origin_value = 0
+     !    species_info(2)%CE_value = 0
+
+      !O+ planetary
+     species_info(3)%Ion_label = "Opl"
+     species_info(3)%qsm_value = 1._dp/16._dp
+     species_info(3)%origin_value = 1
+     !    species_info(3)%CE_value = 0
+
+     !O2+ planetary
+     species_info(4)%Ion_label = "O2pl"
+     species_info(4)%qsm_value = 1._dp/32._dp
+     species_info(4)%origin_value = 1
+     !    species_info(4)%CE_value = 0
+     
+     !CO2+ planetary
+     species_info(5)%Ion_label = "CO2pl"
+     species_info(5)%qsm_value = 1._dp/44._dp
+     species_info(5)%origin_value = 1
+     !    species_info(5)%CE_value = 0
+
+     !H+ planetary
+     species_info(6)%Ion_label = "Hpl"
+     species_info(6)%qsm_value = 1._dp
+     species_info(6)%origin_value = 1
      
     case("mercure")
 
@@ -547,7 +585,7 @@ end subroutine wrt_distribution_function
  !    species_info(5)%CE_value = 0   
 
  
-    case("earth")
+    case("shockCME")
       !  H+ sw
       species_info(1)%Ion_label = "Hsw"
       species_info(1)%qsm_value = 1._dp
