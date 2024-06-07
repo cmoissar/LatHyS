@@ -142,7 +142,7 @@ def load_data_3D(data_directory, t, verbose=False):
     Bz = simu_data['Bz']
     B = np.sqrt(simu_data['Bx']**2 + simu_data['By']**2 + simu_data['Bz']**2)
     E = np.sqrt(simu_data['Ex']**2 + simu_data['Ey']**2 + simu_data['Ez']**2)
-    V = Vx**2+Vy**2+Vz**2
+    V = np.sqrt(simu_data['Vx']**2 + simu_data['Vy']**2 + simu_data['Vz']**2)
     nx0,  ny0,  nz0 = simu_data['nx0'], simu_data['ny0'], simu_data['nz0']
     
     return x, y, z, nx0, ny0, nz0, N, T, Vx, Vy, Vz, V, Ex, Ey, Ez, E, Bx, By, Bz, B

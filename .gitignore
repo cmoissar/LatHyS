@@ -1,3 +1,5 @@
 *.o
 *.mod
 24_*
+analyse_results/.ipynb_checkpoints/*
+analyse_results/__pycache__/*

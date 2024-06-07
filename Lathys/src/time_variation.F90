@@ -45,13 +45,13 @@ subroutine define_VARIABLES_CME(species)
 
  __WRT_DEBUG_IN("define_VARIABLES_CME")
 
-        t_start_MC = 10.0_dp
+        t_start_MC = 20.0_dp
         n_start_MC = int(t_start_MC / dt)
         Dt_MC = 70.0_dp
         Dn_MC = int(Dt_MC / dt)
         t_trans_start = 5.0_dp
         n_trans_start = real(int(t_trans_start / dt)) ! Avoids integer division in the tanh
-        t_end = 20.0_dp
+        t_end = 30.0_dp
         n_end = int(t_end / dt)
         t_trans_end = t_end + Dt_MC
         n_trans_end = real(int(t_trans_end / dt))
@@ -62,7 +62,7 @@ subroutine define_VARIABLES_CME(species)
         By_SW  = by0
         Bz_SW  = bz0
  
-        B_MC   = (50.0_dp / 10.0_dp) * B_SW !B_SW !(12.0_dp / 3.75_dp) * B_SW
+        B_MC   = 5 * B_SW !B_SW !(12.0_dp / 3.75_dp) * B_SW
         By_MC  = B_MC 
         Bz_MC  = sqrt(B_MC**2 - By_MC**2)
  
@@ -105,7 +105,7 @@ subroutine define_VARIABLES_CME(species)
 
         !!! DENSITY !!!
         Ng_SW = species%S(H)%ng
-        Ng_MC = (1.7_dp / 1.7_dp) * Ng_SW
+        Ng_MC = Ng_SW
 
         ! the factor 1.25 is fine_tuning so that the full density is reached by
         do i=1,nhm
