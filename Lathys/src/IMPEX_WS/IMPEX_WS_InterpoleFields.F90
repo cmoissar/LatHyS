@@ -231,8 +231,8 @@ contains
  real(dp),dimension(:,:),intent(inout) :: Out_array
  ! Local Variables
  character(len=32) :: var_name1="",var_name2="",var_name3="",var_name4="",var_name5=""
- integer :: ncm_tot(3),ind_mag,ind_vel,ind_ele,ind_spec,var,line,n_line
- real(dp)  :: centr(3),radius,gstep(3),c_wpi 
+ integer :: ncm_tot(3),ind_mag,ind_vel,ind_ele,ind_spec,var,line,n_line,ind_Jcur,ind_GPma
+ real(dp)  :: centr(3),radius,gstep(3),c_wpi
  real(dp) :: xa,ya,za,xf,yf,zf,w1,w2,w3,w4,w5,w6,w7,w8
  integer :: i,j,k
  character(len=8) :: planet
@@ -256,9 +256,18 @@ __WRT_DEBUG_IN("extract_field_value")
    if (ind_vel /= 0) then
       var_name1 = "Ux"; var_name2 = "Uy"; var_name3 = "Uz"
    endif
-  
- if ((ind_mag ==0).and.(ind_vel==0).and.(ind_ele==0)) then
-     var_name1 = "Density"; var_name2 = "Ux";	var_name3 = "Uy";	var_name4 = "Uz"
+ ind_Jcur = INDEX(cube_name,"Jcur")
+  if (ind_Jcur /= 0) then
+     var_name1 = "Jx"; var_name2 = "Jy"; var_name3 = "Jz"
+ endif
+
+  ind_GPma = INDEX(cube_name,"GPma")
+   if (ind_GPma /= 0) then
+      var_name1 = "GPmagx"; var_name2 = "GPmagy"; var_name3 = "GPmagz"
+ endif
+
+ if ((ind_mag ==0).and.(ind_vel==0).and.(ind_ele==0).and.(ind_Jcur==0).and.(ind_GPma==0)) then
+     var_name1 = "Density"; var_name2 = "Ux";   var_name3 = "Uy";   var_name4 = "Uz"
      var_name5 = "Temperature"
  endif    
   
@@ -276,9 +285,9 @@ __WRT_DEBUG_IN("extract_field_value")
     allocate(A(ncm_tot(1),ncm_tot(2),ncm_tot(3)))
     allocate(B(ncm_tot(1),ncm_tot(2),ncm_tot(3)))
     A = zero;	B=zero
- endif  
- 
- if ((ind_mag /=0).or.(ind_vel/=0).or.(ind_ele/=0)) then
+ endif
+
+ if ((ind_mag /=0).or.(ind_vel/=0).or.(ind_ele/=0).or.(ind_Jcur/=0).or.(ind_GPma/=0)) then
    call read_field_cdf(cube_name,var_name1,var_name2,var_name3, Ax,Ay,Az)
  else
    call read_species_cdf(cube_name,var_name1,var_name2,var_name3,var_name4,var_name5, A,Ax,Ay,Az,B)
@@ -303,12 +312,12 @@ __WRT_DEBUG_IN("extract_field_value")
  X0_traj = X_MSO; Y0_traj = Y_MSO; Z0_traj = Z_MSO
  X_MSO=X0_traj
  Y_MSO=Y0_traj*cos((clockangle+90)/180.*pi)-Z0_traj*sin((clockangle+90)/180.*pi)
- Z_MSO=Z0_traj*cos((clockangle+90)/180.*pi)+Y0_traj*sin((clockangle+90)/180.*pi) 
+ Z_MSO=Z0_traj*cos((clockangle+90)/180.*pi)+Y0_traj*sin((clockangle+90)/180.*pi)
  deallocate(X0_traj,Y0_traj,Z0_traj)
  endif
- 
- 
-if ((ind_mag ==0).and.(ind_vel==0).and.(ind_ele==0)) then
+
+
+if ((ind_mag ==0).and.(ind_vel==0).and.(ind_ele==0).and.(ind_Jcur==0)) then
   allocate(A_1D(n_line),B_1D(n_line))
   A_1D = zero;	B_1D = 0
 endif  
@@ -359,7 +368,7 @@ endif
         	     w6*Az(i  ,j+1,k  ) + w7*Az(i+1,j  ,k  ) + &
         	     w8*Az(i  ,j  ,k  ))
 
-           if ((ind_mag ==0).and.(ind_vel==0).and.(ind_ele==0)) then        	     
+           if ((ind_mag ==0).and.(ind_vel==0).and.(ind_ele==0).and.(ind_Jcur==0)) then
                   A_1D(line) = ( w1*A(i+1,j+1,k+1) + &
 		        	     w2*A(i  ,j+1,k+1) + w3*A(i+1,j  ,k+1) + &
 		        	     w4*A(i  ,j  ,k+1) + w5*A(i+1,j+1,k  ) + &
@@ -380,16 +389,20 @@ endif
  
  do var =1, nb_var 
    print *,'nb var ', var
-   if ((tab_var(var) == "Btot").or.(tab_var(var) == "Etot").or.(tab_var(var) == "Utot")) then
+   if ((tab_var(var) == "Btot").or.(tab_var(var) == "Etot").or.(tab_var(var) == "Utot").or.(tab_var(var) == "Jtot")&
+           .or.(tab_var(var) == "GPmagtot")) then
      Out_array(:,var) = sqrt(Ax_1D**2+Ay_1D**2+Az_1D**2)
    endif
-   if ((tab_var(var) == "Bx").or.(tab_var(var) == "Ex").or.(tab_var(var) == "Ux")) then
+   if ((tab_var(var) == "Bx").or.(tab_var(var) == "Ex").or.(tab_var(var) == "Ux").or.(tab_var(var) == "Jx") &
+   .or.(tab_var(var) == "GPmagx")) then
      Out_array(:,var) = Ax_1D
    endif
-   if ((tab_var(var) == "By").or.(tab_var(var) == "Ey").or.(tab_var(var) == "Uy")) then
+   if ((tab_var(var) == "By").or.(tab_var(var) == "Ey").or.(tab_var(var) == "Uy").or.(tab_var(var)=="Jy") &
+   .or.(tab_var(var)=="GPmagy")) then
      Out_array(:,var) = Ay_1D
    endif
-   if ((tab_var(var) == "Bz").or.(tab_var(var) == "Ez").or.(tab_var(var) == "Uz")) then
+   if ((tab_var(var) == "Bz").or.(tab_var(var) == "Ez").or.(tab_var(var) == "Uz").or.(tab_var(var) == "Jz")&
+   .or.(tab_var(var) == "GPmagz")) then
      Out_array(:,var) = Az_1D
    endif    
    if (tab_var(var) == "Density") Out_array(:,var) = A_1D
@@ -510,7 +523,7 @@ __WRT_DEBUG_OUT("read_dim_field_cdf")
  count_nb_var = 1
  end_string = .false.
  test_var = read_variable
- do while (end_string==.false.)
+ do while (end_string.eqv..false.)
    ind = INDEX(test_var,",")
    if (ind /=0) then
      test_var = test_var(ind+1:len(test_var))
@@ -765,7 +778,13 @@ __WRT_DEBUG_IN("save_field_value")
      endif    
      if ((tab_var(i) == "Ux").or.(tab_var(i) == "Uy").or.(tab_var(i) == "Uz").or.(tab_var(i) == "Utot")) then
        unit = "km.s-1";	val_ucd = "phys.veloc"
-     endif     
+     endif
+     if ((tab_var(i) == "Jx").or.(tab_var(i) == "Jy").or.(tab_var(i) == "Jz").or.(tab_var(i) == "Jtot")) then
+       unit = "nA.m-2";	val_ucd = "phys.electField"
+     endif
+     if ((tab_var(i) == "GPmagx").or.(tab_var(i) == "GPmagy").or.(tab_var(i) == "GPmagz").or.(tab_var(i) == "GPmagtot")) then
+       unit = "N.m-3";	val_ucd = "phys.electField"
+     endif
      if (tab_var(i) =="Density") then
        unit = "cm-3"; val_ucd = "phys.density"
      endif

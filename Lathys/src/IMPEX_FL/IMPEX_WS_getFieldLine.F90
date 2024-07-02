@@ -158,9 +158,9 @@ program IMPEX_getFieldLine
  
  ! creation of array of position and time
  allocate(X_MSO(n_line), Y_MSO(n_line), Z_MSO(n_line))
- X_MSO(:) = 0.;	Y_MSO(:) = 0.;	Z_MSO(:) = 0.
+ X_MSO(:) = 0.; Y_MSO(:) = 0.; Z_MSO(:) = 0.
  
- allocate(In_array(n_line,n_col));	In_array(:,:) = ""
+ allocate(In_array(n_line,n_col)); In_array(:,:) = ""
  
 
  
@@ -172,7 +172,7 @@ program IMPEX_getFieldLine
  ! extract values
  
   if (direction ==0) n_line=n_line*2
-  allocate(Out_array(n_line*lmax,8));	Out_array(:,:) = 0.
+  allocate(Out_array(n_line*lmax,8)); Out_array(:,:) = 0.
 
  call calculate_field_line(cube_name,X_MSO,Y_MSO,Z_MSO,Out_array,length_tab,clockangle,direction,stepsize,unit_traj,planetname)
  print *,'Field line calculation ------done'
@@ -280,7 +280,7 @@ __WRT_DEBUG_IN("calculate_field_line")
 !     var_name5 = "Temperature"
 ! endif    
   
- !print *,'Variable',var_name1 
+ print *,'Variable',var_name1 
  
  call read_dim_field_cdf(cube_name,var_name1,ncm_tot,radius,centr,gstep,planet,c_wpi)
 
@@ -414,6 +414,7 @@ __WRT_DEBUG_IN("calculate_field_line")
        Out_array(lcount,7) =  Az_loc
        Out_array(lcount,8) =  A_loc
        !print *, 'Position :',Out_array(lcount,1),Out_array(lcount,2),Out_array(lcount,3),Out_array(lcount,4)
+     print *,'i,j,k, Values ',i,j,k,Ax(i,j,k),Ay(i,j,k),Az(i,j,k)
 
        pos(1) = pos(1) + sgn_direction*stepsize*Ax_loc/A_loc
        pos(2) = pos(2) + sgn_direction*stepsize*Ay_loc/A_loc
@@ -766,7 +767,7 @@ __WRT_DEBUG_IN("header_fieldline_VOTABLE")
     write(iunit,'(a)') '</DESCRIPTION>'
   
 
-  
+ print *,planetname 
   select case (trim(planetname))
   case("mars","mercury")
    write(iunit,'(a)')  '<GROUP ID="PosFrame" ref="MSO">'
@@ -900,9 +901,9 @@ __WRT_DEBUG_IN("save_field_value")
         FORM = 'FORMATTED',IOSTAT=io)
    !print *,io   	
 ! Header
-    call header_fieldline_VOTABLE(iunit,cube_name,planetname)    	
-   	
-
+    call header_fieldline_VOTABLE(iunit,cube_name,planetname)    
+   
+print *,'header called successfully'
 
  !   
      do i=1,lcount

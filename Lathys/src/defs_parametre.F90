@@ -71,7 +71,7 @@ module defs_parametre
 
  !Planet settings
   integer,save  :: no_env_mag=0  !if 1 then no planetary magnetic field
-  real(dp),save :: planet_ssl=-1._dp !sub solar_longitude
+  real(dp),save :: planet_ssl=-1._dp !sub solar_longitude !Sae has "planet_ssl=180._dp" why?
   real(dp),save :: planet_sslat = 0._dp ! sub solar latitude
   integer,save  :: t_init_dip = 100  ! number of time steps to initialize the dipole
 !***********************************************
@@ -85,7 +85,7 @@ module defs_parametre
  !--Output file name
  character(len=40),save :: qp_out_name = "sortie"
  
- integer,save :: diag_part_imp = 0
+ integer,save :: diag_part_imp = 0 !Sae has "diag_part_imp = 1" why?
  integer,save :: n_part_imp=0,n_part_del=0
  integer,save :: distrib_activated = 0
 

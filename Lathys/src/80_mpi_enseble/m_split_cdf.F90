@@ -225,7 +225,7 @@ contains
    call get_simple_variable_cdf(ncid,"vela_y"  ,uya_proc(:,:,:) )
    call get_simple_variable_cdf(ncid,"vela_z"  ,uza_proc(:,:,:) )
   ! added to compute electronic pressure
-  ! call get_simple_variable_cdf(ncid,"Pe"  ,pe_proc(:,:,:) )
+   call get_simple_variable_cdf(ncid,"Pe"  ,pe_proc(:,:,:) )
 
    stId = nf90_close(ncid);  call test_cdf(stId)
   ! writing the magnetic field components in a file
@@ -348,7 +348,7 @@ contains
    integer,intent(in) :: coord_proc(:)
    
    integer :: ncid, stId,ii
-   integer :: dimid(11), varid(75)
+   integer :: dimid(12), varid(75)
    character(len=40) :: name_file 
    real(dp) :: dt_t(2)
    
@@ -539,7 +539,7 @@ contains
    integer,intent(in) :: coord_proc(:)
    
    integer :: ncid, stId,ii
-   integer :: dimid(11), varid(75)
+   integer :: dimid(12), varid(75)
    character(len=40) :: name_file 
    real(dp) :: dt_t(2)
    

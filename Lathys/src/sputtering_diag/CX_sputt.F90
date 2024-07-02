@@ -371,14 +371,17 @@ contains
     call get_simple_variable_cdf(ncid,"nxyzm",itmp(1))
     call set_grid(itmp,4)
   
-    allocate(dims(ndims)) ; dims = 0
+    !allocate(dims(ndims)) ; 
+    dims = 0
   
     !--Define coordinate vector for proc
-    allocate(coord_proc(nb_procs,ndims)) ; coord_proc =0
+    !allocate(coord_proc(nb_procs,ndims)) ; 
+    coord_proc =0
   
   
     !--Get Total Number of Particles for this proc
-    allocate(nptot_proc(nb_procs)) ; nptot_proc = 0
+    !allocate(nptot_proc(nb_procs)) ; 
+        nptot_proc = 0
     call get_simple_variable_cdf(ncid,"nptot",nptot_proc(1))
   
     !--Get Number of Species
@@ -394,7 +397,8 @@ contains
     allocate(name_dens(n_spe))
     !--allocation des tableaux de lectures du fichier diag de champ
      
-    allocate(voisin_proc(nb_procs,nb_voisin)) ; voisin_proc = 0
+    !allocate(voisin_proc(nb_procs,nb_voisin)) ; 
+    voisin_proc = 0
   
     stId = nf90_close(ncid);  call test_cdf(stId)
     

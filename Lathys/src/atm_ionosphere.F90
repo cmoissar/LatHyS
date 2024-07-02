@@ -334,18 +334,24 @@ use defs_parametre, only : ipe
   type(species_type),intent(in) :: Spe
   type(atmosphere_type),intent(inout) ::atmosphere
 
-   real(dp) :: t,arg,gammam1,rate!,conv_t
+   real(dp) :: t,arg,gamma1,rate,conv_t
    integer  :: ii,jj,n
 
 t2=0._dp
 !conv_t=2.88E28 !1./(2mu_0k_b)
 !conv_t=conv_t*Spe%betae*(Spe%ref%mag**2)/Spe%ref%density
-if (mod(ipe,2) == 0) then   
-        gammam1=2._dp/3._dp  
-else    
-        gammam1=0._dp
-endif
-t=log(max((te*Spe%ref%conv_t*dn_e_incdt(i,j,k)**gammam1),1._dp))
+!if (mod(ipe,2) == 0) then   
+!        gammam1=2._dp/3._dp  
+!else    
+!        gammam1=0._dp
+!endif
+!t=log(max((te*Spe%ref%conv_t*dn_e_incdt(i,j,k)**gammam1),1._dp))
+conv_t = 2.*sum(Spe%S(:)%qms*Spe%S(:)%rmds)*(Spe%ref%mag**2)/(Spe%ref%density*2._dp*mu0*e_Cb)
+
+gamma1 = 5._dp/3._dp
+t = Spe%betae/e_Cb * dn_e_incdt(i,j,k)**(gamma1-1) * Spe%ref%mag**2 / (2*mu0*Spe%ref%density)
+t = log(t*e_Cb/kb_JK)
+
 do ii=1,atmosphere%n_ei
  if ((atmosphere%species(l)%name).eq.atmosphere%ei_reactions(ii)%ion%name) then
     n=atmosphere%ei_reactions(ii)%n-1
@@ -355,11 +361,11 @@ do ii=1,atmosphere%n_ei
         enddo
     if (arg.gt.(-10._dp)) then
     rate=exp(arg)
-    t2 = t2+rate*atmosphere%ei_reactions(ii)%neutral%density(i,j,k)*dn_e_incdt(i,j,k)!divided by ref%density later
+    t2 = t2+rate*atmosphere%ei_reactions(ii)%neutral%density(i,j,k)*dn_e_incdt(i,j,k)*Spe%ref%density!divided by ref%density later
     endif
  endif
 enddo
-t2=t2/Spe%ref%density
+t2=t2*1.e-6
 
 end subroutine compute_ei
 
