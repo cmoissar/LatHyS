@@ -68,10 +68,10 @@ contains
    var_name1 = "Bx"
    var_name2 = "By"
    var_name3 = "Bz"
-   
+   var_name4 = "Btot"  
    prefix_output = "Magw"
    
-   call merge_field_cdf(run_name,prefix,var_name1,var_name2,var_name3,prefix_output) 
+   call merge_field_cdf(run_name,prefix,var_name1,var_name2,var_name3,var_name4,prefix_output) 
    
   !   prefix = "Vel3"
   !   var_name1 = "Ux"
@@ -85,9 +85,9 @@ contains
      var_name1 = "Ex"
      var_name2 = "Ey"
      var_name3 = "Ez"
-     
+     var_name4 = "Etot"
    prefix_output = "Elew"
-   call merge_field_cdf(run_name,prefix,var_name1,var_name2,var_name3,prefix_output)    
+   call merge_field_cdf(run_name,prefix,var_name1,var_name2,var_name3,var_name4,prefix_output)    
    
   !   prefix = "Den3"
   !   var_name1 = "Density"
@@ -145,10 +145,10 @@ contains
  !! reads 1 file computed for each process
  !! and merge it to one big file
  
-  subroutine merge_field_cdf(run_name,prefix,varname1,varname2,varname3,prefix_output)
+  subroutine merge_field_cdf(run_name,prefix,varname1,varname2,varname3,varname4,prefix_output)
     character(len=*),intent(in) :: run_name
     character(len=*),intent(in) :: prefix,prefix_output
-    character(len=*),intent(in) :: varname1,varname2,varname3
+    character(len=*),intent(in) :: varname1,varname2,varname3,varname4
     !--Reading variables
     integer,parameter :: N=1,NE=2,E=3,SE=4,S=5,SW=6,W=7,NW=8
     integer :: rang,nb_procs,ndims,nb_voisin
@@ -162,14 +162,14 @@ contains
       
     !--Variables to read fields diagnostic
     real(dp),dimension(:,:,:),allocatable :: Ax_proc,Ay_proc,Az_proc
-    real(dp),dimension(:,:,:),allocatable :: Ax,Ay,Az
+    real(dp),dimension(:,:,:),allocatable :: Ax,Ay,Az,Atot
     real(dp),dimension(:),allocatable :: X_axis,Y_axis,Z_axis
     
     !--Others
     integer :: ind,deby,debz,finy,finz,iproc
     integer :: deb,fin,cumul
     integer  :: stId,ncid,ii,is,ny,nz,jj,i
-    integer  :: varid(1000),dimid(11)
+    integer  :: varid(1000),dimid(12)
     integer  :: itmp(3),var_id
     real(dp) :: rtmp(3)
     logical :: file_e
@@ -319,7 +319,8 @@ contains
    allocate(Ax(ncm_tot(1),ncm_tot(2),ncm_tot(3)))
    allocate(Ay(ncm_tot(1),ncm_tot(2),ncm_tot(3)))
    allocate(Az(ncm_tot(1),ncm_tot(2),ncm_tot(3)))
-   Ax = zero    ; Ay = zero     ; Az = zero    
+   allocate(Atot(ncm_tot(1),ncm_tot(2),ncm_tot(3)))
+   Ax = zero    ; Ay = zero     ; Az = zero    ; Atot = zero
    
    !-- Allocate coordinate axis
    allocate(X_axis(ncm_tot(1)));        allocate(Y_axis(ncm_tot(2)))
@@ -430,7 +431,7 @@ contains
    Ax = Ax*nrm*sgn
    Ay = Ay*nrm*sgn
    Az = Az*nrm
-
+   Atot = sqrt(Ax**2+Ay**2+Az**2)
    
    !--Creation du fichier de diagnostique de champ a acces sequentiel
      write_name = prefix_output//'_'//trim(run_name)//".nc"
@@ -481,7 +482,9 @@ contains
      stId = nf90_def_var(ncid, varname2, QP_NF90_DP,dimid(6:8),varid(ii))
      call test_cdf(stId); ii = ii+1                                                
      stId = nf90_def_var(ncid, varname3, QP_NF90_DP,dimid(6:8),varid(ii))
-     call test_cdf(stId)
+     call test_cdf(stId); ii = ii+1
+     !stId = nf90_def_var(ncid, varname4, QP_NF90_DP,dimid(6:8),varid(ii))
+     !call test_cdf(stId)
      
      !--Switch to write mode
        stId = nf90_enddef(ncid); call test_cdf(stId)
@@ -515,7 +518,9 @@ contains
        stId = nf90_put_var(ncid, varid(ii), Ay)
        call test_cdf(stId); ii = ii+1 
        stId = nf90_put_var(ncid, varid(ii), Az)
-       call test_cdf(stId)
+       call test_cdf(stId);ii = ii+1
+       !stId = nf90_put_var(ncid, varid(ii), Atot)
+       !call test_cdf(stId)
        
        !--Close the file
          stId = nf90_close(ncid); call test_cdf(stId)
@@ -555,7 +560,7 @@ contains
     integer :: ind,deby,debz,finy,finz,iproc
     integer :: deb,fin,cumul
     integer  :: stId,ncid,ii,is,jj,ny,nz
-    integer  :: varid(1000),dimid(11)
+    integer  :: varid(1000),dimid(12)
     integer  :: itmp(3)
     real(dp) :: rtmp(3)
     logical :: file_e
@@ -857,7 +862,7 @@ contains
     integer :: ind,deby,debz,finy,finz,iproc
     integer :: deb,fin,cumul
     integer  :: stId,ncid,ii,is,jj,ny,nz
-    integer  :: varid(1000),dimid(11)
+    integer  :: varid(1000),dimid(12)
     integer  :: itmp(3)
     real(dp) :: rtmp(3)
     logical :: file_e
@@ -1179,7 +1184,7 @@ contains
       integer :: ind,deby,debz,finy,finz,iproc
       integer :: deb,fin,cumul
       integer  :: stId,ncid,ii,is,jj,ny,nz,i
-      integer  :: varid(1000),dimid(11)
+      integer  :: varid(1000),dimid(12)
       integer  :: itmp(3)
       real(dp) :: rtmp(3)
       logical :: file_e
@@ -1714,7 +1719,7 @@ contains
     integer :: ind,deby,debz,finy,finz,iproc,ish
     integer :: deb,fin,cumul
     integer  :: stId,ncid,ii,is,jj,ny,nz
-    integer  :: varid(1000),dimid(11)
+    integer  :: varid(1000),dimid(12)
     integer  :: itmp(3)
     real(dp) :: rtmp(3)
     logical :: file_e
@@ -1956,7 +1961,7 @@ contains
    
    deallocate(Ax)
    deallocate(voisin_proc,dims,coord_proc,nptot_proc)
-   
+   deallocate(name_dens) 
   
   end subroutine merge_field_cdf_atm
   
@@ -1987,7 +1992,7 @@ contains
     integer :: ind,deby,debz,finy,finz,iproc,ish
     integer :: deb,fin,cumul
     integer  :: stId,ncid,ii,is,ny,nz,jj,iii,i
-    integer  :: varid(1000),dimid(11)
+    integer  :: varid(1000),dimid(12)
     integer :: dimion(5),dimchar
     integer  :: itmp(3),var_id
     real(dp) :: rtmp(3)
@@ -2462,7 +2467,7 @@ end subroutine merge_moment_species_cdf
     integer :: ind,deby,debz,finy,finz,iproc,ish
     integer :: deb,fin,cumul
     integer  :: stId,ncid,ii,is
-    integer  :: varid(1000),dimid(11)
+    integer  :: varid(1000),dimid(12)
     integer  :: itmp(3)
     real(dp) :: rtmp(3)
     logical :: file_e
@@ -2684,7 +2689,7 @@ end subroutine merge_moment_species_cdf
    deallocate(Ax_proc)
    deallocate(Ax)
    deallocate(voisin_proc,dims,coord_proc,nptot_proc)
-   
+   deallocate(name_dens)
   
   end subroutine merge_field_cdf_pro
     
