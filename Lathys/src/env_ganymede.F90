@@ -18,6 +18,7 @@ module env_ganymede
  use defs_atmospheretype
  use m_writeout
  use atm_sections_efficaces
+ use atm_charge_exchange
  use mpi
      
 #include "q-p_common.h"
@@ -57,8 +58,8 @@ real(dp),allocatable :: density_Oi(:,:,:),prod_temp(:,:,:)
       dealloc_ganymede,           &!--deallocate pp and density arrays for Ganymede
       exosphere_ganymede,          &
       photoproduction_ganymede,     &
-      feed_ionosphere_ganymede!!,    &
-!!      charge_exchange_ganymede
+      feed_ionosphere_ganymede,    &
+      charge_exchange_ganymede
 contains
  !!#####################################################################
 
@@ -199,7 +200,7 @@ contains
   integer, intent(in) :: ncm(3)
   type(arr3Dtype),intent(inout) :: Bfield
   real(dp),intent(in) :: gstep(3),s_min_loc(3)
-  type(species_type),intent(in) :: Spe
+  type(species_type),intent(inout) :: Spe
 
   !local
   integer :: ii,jj,kk
@@ -279,7 +280,7 @@ contains
  !!
  subroutine create_ionosphere_ganymede(Spe,particule,gstep,s_min_loc,s_max_loc,irand,nptot,atmosphere)
 
-  use mpi
+  !use mpi
 !  use defs_parametre
   use defs_mpitype,only: mpiinfo
   use defs_atmospheretype
@@ -676,7 +677,7 @@ contains
   !  real(dp),intent(in) :: dt
   real(dp),intent(in) :: gstep(3),s_min_loc(3)
   real(dp),intent(inout) :: resistivity(:,:,:)
-  type(species_type),intent(in) :: Spe
+  type(species_type),intent(inout) :: Spe
 
   !local
   integer :: ii,jj,kk
@@ -778,22 +779,21 @@ contains
 !! FUNCTION
 !!  computes charge exchange for Ganymede
 !!   
-!!subroutine charge_exchange_ganymede(nn,kpickup,&
-!!                 qsm,irand,ijk,v_p,w,Spe,particule,atmosphere)
-!! use atm_charge_exchange
-!! use defs_particletype
-!!   integer,intent(in) :: nn,ijk(3)
-!!  integer,intent(inout) :: irand,kpickup
-!!  real(dp),intent(in) :: qsm,v_p(3),w(8)
-!!  type(species_type),intent(in) :: Spe
-!!  type(particletype),intent(inout) :: particule(:)
-!!  type(atmosphere_type),intent(inout) ::atmosphere
-!!  real(dp) ::Va,conv_fac,vmod
-!!   __WRT_DEBUG_IN("charge_exchange_gany")
-!!   call  charge_exchange_generic(nn,kpickup,qsm,irand,&
-!!      &                     ijk,v_p,w,Spe,particule,atmosphere)! does all the work
-!!       __WRT_DEBUG_OUT("charge_exchange_gany")
-!!end subroutine
+subroutine charge_exchange_ganymede(nn,kpickup,&
+                 qsm,irand,ijk,v_p,w,Spe,particule,atmosphere)
+ use defs_particletype
+   integer,intent(in) :: nn,ijk(3)
+  integer,intent(inout) :: irand,kpickup
+  real(dp),intent(in) :: qsm,v_p(3),w(8)
+  type(species_type),intent(in) :: Spe
+  type(particletype),intent(inout) :: particule(:)
+  type(atmosphere_type),intent(inout) ::atmosphere
+  real(dp) ::Va,conv_fac,vmod
+   __WRT_DEBUG_IN("charge_exchange_gany")
+   call  charge_exchange_generic(nn,kpickup,qsm,irand,&
+      &                     ijk,v_p,w,Spe,particule,atmosphere)! does all the work
+       __WRT_DEBUG_OUT("charge_exchange_gany")
+end subroutine
 
 
 

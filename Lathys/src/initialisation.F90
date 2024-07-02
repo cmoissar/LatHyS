@@ -8,6 +8,7 @@ module initialisation
  use m_writeout
  use m_timing,only     : time_get
  use m_distribution_function
+ use mpi
 
 #include "q-p_common.h"
 
@@ -161,7 +162,7 @@ contains
  subroutine h3init()
   !Initialistion des parametres plasma pour la simulation
   
-  use mpi
+ ! use mpi
   use defs_mpitype,only         : mpiinfo,nproc
   use defs_grid
   use defs_species,only            : print_species
@@ -187,6 +188,7 @@ contains
   real(dp) :: coupdslo
   real(dp) :: s_lon(3)                  !--Length of the box in any Direction 
   real(dp) :: s_min_par(3),s_max_par(3) !--Particles max and min in any direction
+  real(dp) :: pos_plan(3)       !--obstacle position
   character(len=500) :: msg
 
   ! Choose a cell where magnetic field values are recorded every time_step
@@ -217,8 +219,9 @@ contains
   if ((abs(s_max_loc(3)-s_max(3))).lt.0.001) s_max_loc(3)=s_max(3)
  
  
+  if(restart==0)then
   select case(trim(planetname))
-  case("moon","mars","mars3try","titan","mercure")
+  case("moon","mars","venus","mars3try","titan","mercure")
     pos_plan = int((s_max-s_min)/two+s_min)
   case("ganymede")
     pos_plan(1) = int((s_max(1)-s_min(1))*two/three+s_min(1))
@@ -238,8 +241,7 @@ contains
     call wrt_double(qp_out,msg,wrtscreen,wrtdisk)
     stop
   end select
-
-  if(restart==0)then
+  
  !--Intialisation of Species 
    call init_species(Spe,pos_plan)
    

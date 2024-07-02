@@ -308,7 +308,8 @@ end function
 
   ! If the particle impacts the surface
    if(dst_planet < Spe%P%r_lim + alt_part_imp/Spe%ref%c_omegapi) then
-     if ((diag_part_imp.ne.0).and.(abs(particule(nn)%char/particule(nn)%mass-1._dp/16._dp) < 0.01)) then
+     if (((diag_part_imp.ne.0).and.(abs(particule(nn)%char/particule(nn)%mass-1._dp/16._dp) < 0.01)).and. &
+            & (iter*dt > 300.)) then
         ! Compute the flux of impacting particles
         if (dst_planet_av >= Spe%P%r_lim + alt_part_imp/Spe%ref%c_omegapi .and. particule(nn)%orig/= 4) then
             n_part_imp=n_part_imp+1
@@ -464,7 +465,7 @@ end function
   call wrt_double(qp_out,msg,wrtscreen,wrtdisk)
 
   !!------ Dumping the sputtering flux every XXX time steps
-  if ((diag_part_imp.ne.0).and.(mod(iter,60)==0)) then
+  if (((diag_part_imp.ne.0).and.(mod(iter,300)==0)).and.(iter*dt > 300)) then
    write(nom_fichier,'(a8,a2,i5.5)')trim(fildat),'_t',int(iter*dt)
      
      call wrt_flux_part_imp(nom_fichier)
@@ -815,7 +816,7 @@ end function
  
    !******************************* ECHANGE DE CHARGE *********  
    if (part_is_out) then
-    call calc_charge_exchange(nn,kpickup,qsm,irand,ijk,v_p,w,Spe,particule)
+    call calc_charge_exchange(nn,kpickup,qsm,irand,ijk,v_p,w,Spe,particule,atmosphere)
     call split_particle_iono(Spe,particule,nn,nptot,gstep,dist2,irand, &
         &       s_min_loc,s_max_loc)
    endif
@@ -826,14 +827,14 @@ end function
 
   knew=nptot-n2
   n2=nptot
-  call feed_ionosphere(Spe,particule,gstep,s_min_loc,s_max_loc,irand,nptot)  
+  call feed_ionosphere(Spe,particule,gstep,s_min_loc,s_max_loc,irand,nptot,atmosphere)  
   write(msg,'(2a,3(2a,i5),2a,i10)')&
        & ch10," ******************************",&
        & ch10," nombre de charges echangees ",kpickup,&
        & ch10," nombre de pick-up a creer   ",nptot-n2,&
        & ch10," nombre de pick-up a spliter ",knew,&
        & ch10," nombre de particules        ",nptot
- ! call wrtout(6,msg,'PERS')
+  call wrtout(6,msg,'PERS')
   n2 = nptot  
 
   __GETTIME(27,2)!--Timer stop

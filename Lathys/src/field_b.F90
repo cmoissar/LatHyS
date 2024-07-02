@@ -14,6 +14,7 @@ module field_b
  use defs_mpitype,only     : mpitype
  use m_writeout
  use m_timing,only         : time_get
+ use mpi
 
 #include "q-p_common.h"
 
@@ -175,7 +176,7 @@ contains
  subroutine testBfield(Bfield,Bfield_h,t,iter,infompi)
 
   use defs_parametre,only      : eps
-  use mpi
+  !use mpi
 
   integer,intent(in) :: iter
   real(dp),intent(in) :: t

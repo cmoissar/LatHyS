@@ -31,16 +31,18 @@ contains
   integer :: jreg
 
    call wrt_fields(filwrtname)
-!   call wrt_iono(filwrtname)
-!   call wrt_prod(filwrtname)
-   
-   if (210==iter*dt) then
-       call wrt_particles(filwrtname)
-   endif
+   call wrt_iono(filwrtname)
+   call wrt_prod(filwrtname)
+   call wrt_particles(filwrtname)
    call wrt_tm_results(filwrtname)
    call wrt_moment_species(filwrtname)
-!   if (distrib_activated.eq.1) call wrt_distribution_function(filwrtname)
+   if (distrib_activated.eq.1) call wrt_distribution_function(filwrtname)
    !if (diag_part_imp.ne.0) call wrt_flux_part_imp(filwrtname)
+
+   !if the run is heavy, saving particles only at specified times may help
+   !if (210==iter*dt) then
+   !    call wrt_particles(filwrtname)
+   !endif
 
 
    if (mpiinfo%me==0) then

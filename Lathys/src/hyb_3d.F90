@@ -95,17 +95,17 @@ program Mars3d_f90
  
   !--------------fichiers particules impactantes-------------
  !diag_part_imp = 1
- if (diag_part_imp.ne.0) then
-   iunits = mpiinfo%me+20
-  write(name_file_imp,'(a19,i4.4,a1,a)')"part_imp_formatted_",mpiinfo%me,"_",trim(fildat)
- 
-    open(UNIT   = iunits,&
-         FILE   = name_file_imp,&
-         FORM   = 'formatted',&
-         ACTION = 'write', &
-         STATUS = 'unknown')
-  print*,'iunits open',iunits
- endif
+ !if (diag_part_imp.ne.0) then
+ !  iunits = mpiinfo%me+20
+ ! write(name_file_imp,'(a19,i4.4,a1,a)')"part_imp_formatted_",mpiinfo%me,"_",trim(fildat)
+ !
+ !   open(UNIT   = iunits,&
+ !        FILE   = name_file_imp,&
+ !        FORM   = 'formatted',&
+ !        ACTION = 'write', &
+ !        STATUS = 'unknown')
+ ! print*,'iunits open',iunits
+ !endif
  !----------------------------------------------------------
 
 
@@ -154,9 +154,9 @@ program Mars3d_f90
  call last()
 
 
-if (diag_part_imp.ne.0) then
- close(iunits)
-endif
+!if (diag_part_imp.ne.0) then
+! close(iunits)
+!endif
 
 
  call deallocation()

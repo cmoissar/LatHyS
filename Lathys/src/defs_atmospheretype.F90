@@ -69,9 +69,12 @@ integer ::i
         allocate(density(ncm(1),ncm(2),ncm(3),atmosphere%n_species)); density(:,:,:,:)=zero
 
     allocate(atmosphere%species(1:atmosphere%n_species))
-        if(atmosphere%n_spe_pp.gt.0) then 
-          allocate(prod_pp(ncm(1),ncm(2),ncm(3),atmosphere%n_spe_pp)); prod_pp(:,:,:,:)=zero
-        endif
+       ! commented RM problem when we have more ionosphereic species than planetary species
+       ! if(atmosphere%n_spe_pp.gt.0) then 
+       !   allocate(prod_pp(ncm(1),ncm(2),ncm(3),atmosphere%n_spe_pp)); prod_pp(:,:,:,:)=zero
+       ! endif
+        allocate(prod_pp(ncm(1),ncm(2),ncm(3),atmosphere%n_pp)); prod_pp(:,:,:,:)=zero
+       
         if(atmosphere%n_pp.gt.0) allocate(atmosphere%photo_reactions(1:atmosphere%n_pp))
         if(atmosphere%n_exc.gt.0) allocate(atmosphere%exc_reactions(1:atmosphere%n_exc))
         if(atmosphere%n_ei.gt.0) allocate(atmosphere%ei_reactions(1:atmosphere%n_ei))

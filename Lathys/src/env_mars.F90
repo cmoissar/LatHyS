@@ -13,9 +13,11 @@
 module env_mars
 
  use defs_basis
+ use defs_parametre
  use defs_species
  use defs_atmospheretype
  use atm_external_atmosphere
+ use atm_charge_exchange
 ! use defs_parametre
  use m_writeout
 #ifdef HAVE_NETCDF 
@@ -52,7 +54,7 @@ module env_mars
       init_species_mars,      &!--Intialise the Mars environment
       exosphere_mars,         &!--Compute exosphere densities for Mars
       photoproduction_mars,   &!--Compute production ratio
-!!      charge_exchange_mars,   &!--Charge exchange for Mars
+      charge_exchange_mars,   &!--Charge exchange for Mars
       create_ionosphere_mars, &!--Compute ionosphere densities for Mars
       load_ionosphere_mars,   &!--Load ionsopheric densities for Mars
       feed_ionosphere_mars,   &
@@ -90,13 +92,13 @@ contains
   
   !--Intialize Physical parameter used here
   !--Physical density of reference (m-3)
-  species%ref%density =1.6e6  ! 4.e6 ! extreme event 20.e6
+  species%ref%density =1.5e6  ! 4.e6 ! extreme event 20.e6
 
   !--Ions inertial length (km)
   species%ref%c_omegapi = Sp_Lt*sqrt(epsilon0*pmasse_e2/species%ref%density)/1.e3
 
   !--Magnetic Field (Tesla)
-  species%ref%mag = 2.2e-9 ! 3.e-9 ! extreme event 3.e-9
+  species%ref%mag = 2.e-9 ! 3.e-9 ! extreme event 3.e-9
 
   !--Alfven Speed
   species%ref%alfvenspeed = species%ref%mag/&
@@ -130,7 +132,7 @@ contains
   species%S(:)%ng = (/3, 1/) !(/2,2/)
 
   !--Direct Speeds  (vitesses dirigees?)
-  species%S(H)%vxs = 640._dp/species%ref%alfvenspeed !--  H+  ! 12.18
+  species%S(H)%vxs = 370._dp/species%ref%alfvenspeed !--  H+  ! 12.18
   species%S(He)%vxs = species%S(H)%vxs !-- He++
   species%S(:)%vys  = zero
   species%S(:)%vzs  = zero
@@ -145,9 +147,9 @@ contains
   species%S(:)%rtemp   = (/one,four/)
 
   !--Betas
-  species%S(H)%betas = 1.65_dp   ! 1.57  ! Extreme event 0.12
-  species%S(He)%betas = 0.08_dp  ! 0.03 !               0.024
-  species%betae = 1.66_dp        ! 1.08 !               0.084
+  species%S(H)%betas = 1.57_dp   ! 1.57  ! Extreme event 0.12
+  species%S(He)%betas = 0.03_dp  ! 0.03 !               0.024
+  species%betae = 1.5_dp        ! 1.08 !               0.084
 
   !--Rapport des vitesses thermque entre parallel et perpendiculair  H+ et He++
   species%S(:)%rspeed = one
@@ -247,6 +249,7 @@ contains
                 atmosphere%species(O2p)%charge= one
                 atmosphere%species(O2p)%opaque= .FALSE.
                 atmosphere%species(O2p)%iono  = .TRUE.
+                atmosphere%species(O2p)%prod => prod_pp(:,:,:,O2p)
 
   density_O    => density(:,:,:,O)
                 atmosphere%species(O)%name  = "O         "
@@ -417,17 +420,17 @@ contains
    integer :: ii,jj,kk,iii,jjj,kkk
    real(dp) :: radius,altitude_km,r_planet_km,inv_r_exo_km,nrm
    real(dp) :: ss(3)
-   real(dp),parameter :: d0_O = 5.85e13,e0_O = one/10.56,&
-        &                d1_O = 7.02e9 ,e1_O = one/33.97,&
-        &                d2_O = 5.23e3 ,e2_O = one/626.2,&
-        &                d3_O = 9.76e2 ,e3_O = one/2790.,&
-        &                d4_O = 3.71e4 ,e4_O = one/88.47,&
-        &                d0_H = 1.5e5  ,e0_H = 25965.,   &    ! solar max
-        &                d1_H = 0.  ,e1_H = 1.,    &   ! solar max
+   real(dp),parameter :: d0_O = 2.33e13,e0_O = one/12.27,&
+        &                d1_O = 2.84e9 ,e1_O = one/48.57,&
+        &                d2_O = 1.5e4 ,e2_O = one/696.9,&
+        &                d3_O = 2.92e3 ,e3_O = one/2891.,&
+        &                d4_O = 5.01e4 ,e4_O = one/99.19,&
+        &                d0_H = 1.e3  ,e0_H = 9.25e5,   &    ! solar max
+        &                d1_H = 3.e4  ,e1_H = 1.48e4,    &   ! solar max
         !&                d0_H = 1.5e5  ,e0_H = 25965,    &    ! solar min
         !&                d1_H = 1.9e4  ,e1_H = 10365,    &    ! solar min
-        &                d0_CO2 = 6.014e18,e0_CO2 = one/10.56, &
-        &                d1_CO2 = 1.67e15, e1_CO2 = one/33.97
+        &                d0_CO2 = 5.88e18,e0_CO2 = one/7, &
+        &                d1_CO2 = 3.55e15, e1_CO2 = one/16.67
   character(len=500) :: msg          
  
    __WRT_DEBUG_IN("exosphere_mars")
@@ -513,8 +516,8 @@ contains
   type(atmosphere_type),intent(inout) ::atmosphere
   real(dp) :: F107,F107a,dist_conv
 
-  atmosphere%F107     = 170.0_dp  ! daily F10.7 (e.g. 74)
-  atmosphere%F107_Avg = 170.0_dp  ! 81 day average F10.7 (F10.7A) (e.g. 86)
+  atmosphere%F107     = 105.0_dp  ! daily F10.7 (e.g. 74)
+  atmosphere%F107_Avg = 105.0_dp  ! 81 day average F10.7 (F10.7A) (e.g. 86)
   dist_conv=2.25_dp  ! Flux solaire a l'orbite de l'objet--(1.e4 conversion to photons/(m2*s))
 
   call flux_solaire_generic(atmosphere%nb_lo,atmosphere,atmosphere%F107,atmosphere%F107_Avg,dist_conv)
@@ -534,23 +537,23 @@ contains
  !! FUNCTION
  !!  computes charge exchange for Mars
  !!   
-!!subroutine charge_exchange_mars(nn,kpickup,&
-!!                 qsm,irand,ijk,v_p,w,Spe,particule,atmosphere)
-!! use defs_parametre
-!! use atm_charge_exchange
-!! use defs_particletype
-!!  integer,intent(in) :: nn,ijk(3)
-!!  integer,intent(inout) :: irand,kpickup
-!!  real(dp),intent(in) :: qsm,v_p(3),w(8)
-!!  type(species_type),intent(in) :: Spe
-!!  type(particletype),intent(inout) :: particule(:)
-!!  type(atmosphere_type),intent(inout) ::atmosphere
-!!  real(dp) ::Va,conv_fac,vmod
-!!  conv_fac = Spe%ref%c_omegapi*1.e5 ! 1.38e+7
-!!  vmod  = sqrt(sum(v_p*v_p))*dt*conv_fac
-!!   call  charge_exchange_generic(nn,kpickup,qsm,irand,&
-!!      &                     ijk,v_p,w,Spe,particule,atmosphere)! does all the work
-!!end subroutine
+subroutine charge_exchange_mars(nn,kpickup,&
+                 qsm,irand,ijk,v_p,ww,Spe,particule,atmosphere)
+ use defs_parametre
+ use defs_particletype
+  integer,intent(in) :: nn,ijk(3)
+  integer,intent(inout) :: irand,kpickup
+  real(dp),intent(in) :: qsm,v_p(3)
+  real(dp),intent(in) :: ww(8)
+  type(species_type),intent(in) :: Spe
+  type(particletype),intent(inout) :: particule(:)
+  type(atmosphere_type),intent(in) ::atmosphere
+  real(dp) ::Va,conv_fac,vmod
+  conv_fac = Spe%ref%c_omegapi*1.e5 ! 1.38e+7
+  vmod  = sqrt(sum(v_p*v_p))*dt*conv_fac
+   call  charge_exchange_generic(nn,kpickup,qsm,irand,&
+      &                     ijk,v_p,ww,Spe,particule,atmosphere)! does all the work
+end subroutine
 
  !!=============================================================
  !!routine: env_mars/create_ionosphere_mars
@@ -564,7 +567,7 @@ subroutine create_ionosphere_mars(Spe,particule,gstep,s_min_loc,s_max_loc,irand,
   use atm_ionosphere
   use defs_grid,only : ncm
 
-  real(dp),intent(in) :: gstep(3),s_min_loc(3),s_max_loc(3)
+  real(dp),intent(in) :: s_min_loc(3),s_max_loc(3),gstep(3)
   integer,intent(inout) :: nptot,irand
   type(species_type),intent(in) :: Spe
   type(particletype),intent(inout) :: particule(:)
@@ -1211,7 +1214,7 @@ subroutine mars_magnetic_field(Bfield,ncm,Spe,gstep,s_min_loc)
   integer, intent(in) :: ncm(3)
   type(arr3Dtype),intent(inout) :: Bfield
   real(dp),intent(in) :: gstep(3),s_min_loc(3)
-  type(species_type),intent(in) :: Spe
+  type(species_type),intent(inout) :: Spe
   real(dp),dimension(1:90,0:90)::g,h
   g(:,:)=0.;h(:,:)=0.
         call FSU_mars(g,h); g=g*1.e-9;h=h*1.e-9;

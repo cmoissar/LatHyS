@@ -425,7 +425,9 @@ end subroutine wrt_distribution_function
    
    select case(trim(planetname))
    case("mars")
-     nb_species = 6 
+      nb_species = 6
+   case("venus")
+      nb_species = 6
    case("titan")
       nb_species = 3
    case("mercure")

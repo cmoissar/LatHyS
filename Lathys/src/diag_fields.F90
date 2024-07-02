@@ -66,7 +66,7 @@ contains
   character(len=*),intent(in) :: filwrt
 
   integer :: ncid, stId,ii
-  integer :: dimid(11), varid(75)
+  integer :: dimid(12), varid(75)
   integer,allocatable :: dimspec(:)
   character(len=40) :: name_file 
 

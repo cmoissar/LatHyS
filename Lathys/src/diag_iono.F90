@@ -69,7 +69,7 @@ contains
   character(len=*),intent(in) :: filwrt
 
   integer :: ncid, stId,ii,i
-  integer :: dimid(11), varid(150)
+  integer :: dimid(12), varid(150)
   integer,allocatable :: dimspec(:)
   character(len=40) :: name_file
   character(len=14) :: nam
@@ -136,7 +136,7 @@ contains
   !if (atmosphere%species(i)%iono == .FALSE.) then
   write(nam,'(a,i2)')"Spe_",i
   print *,nam
-  stId = nf90_def_var(ncid,nam,nf90_char,dimid(9),varid(ii))
+  stId = nf90_def_var(ncid,nam,nf90_char,dimid(12),varid(ii))
   call test_cdf(stId); ii = ii+1
   write(nam,'(2a)')"Den_",TRIM(atmosphere%species(i)%name)
   print *,nam

@@ -42,7 +42,7 @@ contains
 
   integer,intent(in) :: ncid
   integer,intent(in) :: ncm(3)
-  integer,intent(out) :: dimid(11)
+  integer,intent(out) :: dimid(12)
 
   integer :: stId
 
@@ -68,6 +68,8 @@ contains
   stId = nf90_def_dim(ncid, "nptot"           , abs(nptot), dimid(10))
   call test_cdf(stId)
   stId = nf90_def_dim(ncid, "number of diag. ", nhm       , dimid(11))
+  call test_cdf(stId)
+  stId = nf90_def_dim(ncid, "string size ", 14       , dimid(12))
   call test_cdf(stId)
 
  end subroutine create_wrt_dimensions_cdf

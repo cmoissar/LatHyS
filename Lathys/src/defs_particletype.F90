@@ -10,6 +10,9 @@
 module defs_particletype
 
  use defs_basis
+#ifndef NOTHAVE_MPI 
+use mpi
+#endif
 
  implicit none
  private
@@ -106,7 +109,7 @@ contains
  subroutine init_MPI_particle()
 #include "q-p_common.h"
 #ifndef NOTHAVE_MPI 
-  use mpi
+!use mpi
 
 
 
@@ -171,7 +174,7 @@ contains
  !! OUT
  subroutine free_MPI_particle()
 #ifndef NOTHAVE_MPI
-  use mpi
+!use mpi
   integer :: ioerr
   call MPI_TYPE_FREE(MPI_particle,ioerr)
 #endif 

@@ -1,6 +1,7 @@
 !!=============================================================
 !!=============================================================
 module m_restart
+ use mpi
  use defs_basis
  use defs_mpitype,only     : mpiinfo
  use defs_parametre
@@ -425,7 +426,7 @@ contains
 
   use defs_mpitype,only     : mpiinfo
   use defs_species
-  use mpi
+  !use mpi
 
   integer,intent(out) :: istate_1(4)
   real(dp),intent(out) :: rstate_1(97)

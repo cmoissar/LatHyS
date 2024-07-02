@@ -318,7 +318,7 @@ atmosphere%photo_reactions(3)%daughter => atmosphere%species(4)
   !  real(dp),intent(in) :: dt
   real(dp),intent(in) :: gstep(3),s_min_loc(3)
   real(dp),intent(inout) :: resistivity(:,:,:)
-  type(species_type),intent(in) :: Spe
+  type(species_type),intent(inout) :: Spe
 
   !local
   integer :: ii,jj,kk

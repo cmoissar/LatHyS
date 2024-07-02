@@ -10,6 +10,7 @@ module m_timing
 
  use defs_basis
  use m_writeout
+ use mpi
 #include "q-p_common.h"
 
  implicit none
@@ -196,7 +197,7 @@ contains
  !!
  subroutine time_get(timenume,verb)
   
-  use mpi
+ ! use mpi
   
   integer,intent(in) :: timenume,verb
   real(dpo) :: loctime
@@ -262,7 +263,7 @@ contains
  subroutine time_add(timenume,locentry,std_time)
 
   use defs_mpitype,only     : mpiinfo
-  use mpi
+  !use mpi
 
   integer,intent(in)  :: timenume
   real(dpo),intent(out)    :: std_time

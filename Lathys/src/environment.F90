@@ -19,6 +19,7 @@ module environment
  use atm_photoproduction
  use env_mars
  use env_mars_try
+ use env_venus
  use env_moon
  use env_ganymede
  use env_titan
@@ -110,6 +111,20 @@ contains
    feed_production => feed_ionosphere_mars
    b_dipole        => mars_magnetic_field
    call alloc_mars(density_exo,prod_pp,atmosphere,ncm)
+
+  case("venus")   
+   ns = 2
+   planet_species  => init_species_venus
+   dealloc_planet  => dealloc_venus
+   exosphere       => exosphere_venus
+   photoproduction => photoproduction_venus
+   ionosphere      => create_ionosphere_venus
+   charge_exchange => charge_exchange_generic
+   feed_production => feed_ionosphere_venus
+   !temporal_change => temporal_change_IMF_planet
+   !init_temporal_change => init_change_IMF_planet
+   call alloc_venus(density_exo,prod_pp,atmosphere,ncm)
+   
   case("moon")
    ns = 2
    planet_species  => init_species_moon
@@ -117,7 +132,7 @@ contains
    ns = 2
    planet_species  => init_species_mercure
    !ionosphere      => create_ionosphere_mercure
-   !b_dipole        => add_b_int_mercure
+   b_dipole        => add_b_int_mercure
    !exosphere       => exosphere_mercure
    !photoproduction => photoproduction_mercure
    !feed_production => feed_ionosphere_mercure
@@ -129,7 +144,7 @@ contains
    dealloc_planet  => dealloc_ganymede
    ionosphere      => create_ionosphere_ganymede
    b_dipole        => add_b_dipole_ganymede
-   !exosphere       => exosphere_ganymede
+   exosphere       => exosphere_ganymede
    feed_production => feed_ionosphere_ganymede
    photoproduction => photoproduction_ganymede
    charge_exchange => charge_exchange_generic
@@ -141,14 +156,14 @@ contains
    exosphere       => exosphere_mars
    photoproduction => photoproduction_mars
    ionosphere      => create_ionosphere_mars
-   charge_exchange => charge_exchange_generic
+   charge_exchange => charge_exchange_mars
    call alloc_mars(density_exo,prod_pp,atmosphere,ncm)!associate pointers
   case("titan")
    ns = 2
    planet_species  => init_species_titan
    dealloc_planet  => dealloc_titan
  !  photoproduction => photoproduction_titan
-   !exosphere       => exosphere_titan
+   exosphere       => exosphere_titan
    !call alloc_titan(density_exo,prod_pp,atmosphere,ncm)!associate pointers
   case("earth")
     ns = 1
@@ -215,12 +230,13 @@ end subroutine add_exosphere
 !! it starts the routine adding at each time steps the
 !! required number of particles (photo_prod, electron impact, ionosphere)
 !!=============================================================
-subroutine feed_ionosphere(Spe,particule,gstep,s_min_loc,s_max_loc,irand,nptot)
+subroutine feed_ionosphere(Spe,particule,gstep,s_min_loc,s_max_loc,irand,nptot,atmosphere)
  use m_timing,only     : time_get
   real(dp),intent(in) :: gstep(3),s_min_loc(3),s_max_loc(3)
   integer,intent(inout) :: nptot,irand
   type(species_type),intent(in) :: Spe
   type(particletype),intent(inout) :: particule(:)
+  type(atmosphere_type),intent(inout) ::atmosphere
   __NO_PLANET_CYCLE
   __GETTIME(78,1)!--Timer start
   if(associated(feed_production)) &
@@ -256,7 +272,7 @@ subroutine add_b_dipole(Bfield,ncm,Spe,gstep,s_min_loc)
   integer, intent(in) :: ncm(3)
   type(arr3Dtype),intent(inout) :: Bfield
   real(dp),intent(in) :: gstep(3),s_min_loc(3)
-  type(species_type),intent(in) :: Spe
+  type(species_type),intent(inout) :: Spe
   __NO_PLANET_CYCLE
   if(associated(b_dipole)) call b_dipole(Bfield,ncm,Spe,gstep,s_min_loc)
 end subroutine add_b_dipole
@@ -282,13 +298,14 @@ end subroutine calc_photoproduction
 !! it starts the routine implementing the particle charge exchange
 !!=============================================================
 subroutine calc_charge_exchange(nn,kpickup,qsm,irand,ijk,&
-        &                    v_p,w,Spe,particule)
+        &                    v_p,w,Spe,particule,atmosphere)
   use defs_variable,only :t
   integer,intent(in) :: nn,ijk(3)
   integer,intent(inout) :: irand,kpickup
   real(dp),intent(in) :: qsm,v_p(3),w(8)
   type(species_type),intent(in) :: Spe
   type(particletype),intent(inout) :: particule(:)
+  type(atmosphere_type),intent(in) ::atmosphere
   __NO_PLANET_CYCLE
   if((associated(charge_exchange)).and.(t.gt.1)) &
          call  charge_exchange(nn,kpickup,&
