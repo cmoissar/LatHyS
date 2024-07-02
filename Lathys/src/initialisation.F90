@@ -188,7 +188,6 @@ contains
   real(dp) :: coupdslo
   real(dp) :: s_lon(3)                  !--Length of the box in any Direction 
   real(dp) :: s_min_par(3),s_max_par(3) !--Particles max and min in any direction
-  real(dp) :: pos_plan(3)       !--obstacle position
   character(len=500) :: msg
 
   ! Choose a cell where magnetic field values are recorded every time_step

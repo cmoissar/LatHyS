@@ -179,7 +179,7 @@ contains
   integer, intent(in) :: ncm(3)
   type(arr3Dtype),intent(inout) :: Bfield
   real(dp),intent(in) :: gstep(3),s_min_loc(3)
-  type(species_type),intent(in) :: Spe
+  type(species_type),intent(inout) :: Spe
 
 
 !   call add_dipole_generic(Bfield,ncm,Spe,gstep,s_min_loc,196.e-9,180.,0.)
