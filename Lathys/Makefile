@@ -137,6 +137,7 @@ OBJS_4 =\
 	env_ganymede.o\
 	env_titan.o\
 	env_earth.o\
+	env_venus.o\
         environment.o\
 
 #OBJS_5= field bloc
