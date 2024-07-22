@@ -2,16 +2,14 @@
 
 ### Short description of the job ###
 
-echo "Can  I run this code on York's research computers?"
+echo "Figuring out how to launch stuff"
 
-JOBNAME='23_01_19_Long_box_run_0'
+JOBNAME='24_07_22_Long_box_run_0'
 
-NODES=1
-NPN=24                        # Keep NPN=24 unless you change --constraint=HSW24 in the template
-NbTASKS=$(expr $NODES \* $NPN)   # Number of tasks to use (MPI processes)
+NbTASKS=8                    # Number of tasks to use (MPI processes)
+NPN=1                        # Keep NPN < 48
 
-#TIME="'2-12:00:00'"
-TIME="23:30:00"
+TIME="0-00:05:00"
 
 NX=1000
 NY=8
@@ -50,7 +48,7 @@ sed -e ${var1} -e ${var2} -e ${var3} -e ${var4} -e ${var6} -e ${var7} -e ${var8}
 sed -e ${var1} -e ${var2} -e ${var3} -e ${var4} -e ${var6} -e ${var7} -e ${var8} -e ${var9} -e ${var10} -e ${var11} -e ${var12} -e ${var13} -e ${var14} <template_restart.slurm >sub_restart.slurm
 
 ### Make def_tregister.F90 start at the beginning
-cd ~/Lathys/src/
+cd ~/LatHyS/Lathys/src/
 LASTDUMP=10
 var1=s/LASTDUMP/$LASTDUMP/g
 sed -e ${var1} <./defs_tregister_modify_this_one.F90 >./defs_tregister.F90
@@ -62,12 +60,13 @@ else
     var=s/YoNPLANET/''/g
 fi
 
-sed -e ${var} <~/Lathys/sav_Makefile >~/Lathys/Makefile
+sed -e ${var} <~/LatHyS/Lathys/sav_Makefile >~/LatHyS/Lathys/Makefile
 
-cd ~/Lathys/
+cd ~/LatHyS/Lathys/
 make clean
 make
-cd ~/bin/
+make diag
+cd ~/LatHyS/bin/
 
 ### Moving the files before entering the queue, so that I can launch ###
 ### multiple runs at the same time ###
@@ -78,14 +77,14 @@ then
 fi 
 mkdir $TEMPDIR
 ## Bring the necessary files to the tempdir ##
-cp -rf $HOME/Lathys/src $TEMPDIR/
-cp -rf $HOME/Lathys/quiet_plasma $TEMPDIR/
-cp -rf $HOME/Lathys/diag $TEMPDIR/
-mv $HOME/bin/sub_Lathys.slurm $TEMPDIR/
-cp $HOME/bin/launcher.sh $TEMPDIR/
-mv $HOME/bin/sub_restart.slurm $TEMPDIR/
+cp -rf $HOME/LatHyS/Lathys/src $TEMPDIR/
+cp -rf $HOME/LatHyS/Lathys/quiet_plasma $TEMPDIR/
+cp -rf $HOME/LatHyS/Lathys/diag $TEMPDIR/
+mv $HOME/LatHyS/bin/sub_Lathys.slurm $TEMPDIR/
+cp $HOME/LatHyS/bin/launcher.sh $TEMPDIR/
+mv $HOME/LatHyS/bin/sub_restart.slurm $TEMPDIR/
 
-qsub $TEMPDIR/sub_Lathys.slurm
+sbatch $TEMPDIR/sub_Lathys.slurm
 
 
 
