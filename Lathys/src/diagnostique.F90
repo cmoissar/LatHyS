@@ -58,8 +58,8 @@ contains
        call system('mv *3*' // treg_str // '.nc t' // treg_str // '/')
      enddo 
 
-     call system('tar -cf t' // time_str // '/Pack' // time_str // '.tar t' // time_str // '/*.nc')
-     call system('rm t' // time_str // '/*.nc')
+!     call system('tar -cf t' // time_str // '/Pack' // time_str // '.tar t' // time_str // '/*.nc')
+!     call system('rm t' // time_str // '/*.nc')
 
    endif
 

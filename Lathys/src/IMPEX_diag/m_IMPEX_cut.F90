@@ -22,7 +22,7 @@ module m_IMPEX_cut
  implicit none
  private 
 
-#ifdef HAVE_NETCDF
+#ifdef HAVE_NETCDF 
  private ::		  &
       read_field_cdf,	  &
       read_species_cdf,	  &
@@ -36,7 +36,6 @@ module m_IMPEX_cut
       header_2Dcut_species_VOTABLE
       !create_file_diag,   &
       !read_moment_species_cdf,&
-      !read_field_cdf_1_array
 
  public ::                &
       extract_2D
@@ -1471,6 +1470,6 @@ character(len=*),intent(in) :: ion_label,plane,planetname,coord
   
 
 end subroutine header_2Dcut_species_VOTABLE 
- #endif    
+#endif    
 
 end module m_IMPEX_cut

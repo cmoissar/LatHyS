@@ -190,7 +190,7 @@ contains
   real(dp) :: bme
  __WRT_DEBUG_IN("add_b_dipole_earth")
 
-   bme=150.e-9 ! en Tesla * rayon planete au cube (moment dipolaire de la terre)
+   bme=15.e-9 ! en Tesla * rayon planete au cube (moment dipolaire de la terre)
   ! bme=196e-9 ! en Tesla * rayon planete au cube (moment dipolaire de mercure)
   !--Initialisation
   !--Dipolar Moment in planetary units (Spe%ref%mag) mu0/4pi*M

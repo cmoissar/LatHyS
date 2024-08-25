@@ -103,19 +103,19 @@ contains
   species%ref%inv_gyro = amu_pmass/(e_Cb*species%ref%mag)
 
   !--Max absorption length (km)
-  species%ref%maxabs = 500._dp
+  species%ref%maxabs = 50._dp
 
   !--Assignation of Planet values
   species%P%centr  = s_centr
 #ifndef HAVE_NO_PLANET
-  species%P%radius = 6052._dp/species%ref%c_omegapi
-  species%P%r_exo  = species%P%radius+300._dp/species%ref%c_omegapi
-  species%P%r_lim  = species%P%radius+200._dp/species%ref%c_omegapi
+  species%P%radius = 605._dp/species%ref%c_omegapi
+  species%P%r_exo  = species%P%radius+30._dp/species%ref%c_omegapi
+  species%P%r_lim  = species%P%radius+20._dp/species%ref%c_omegapi
   if (trim(ionospherename) /="") then
    ! species%P%r_iono = species%P%radius+300._dp/species%ref%c_omegapi
-    species%P%r_iono = species%P%radius+400._dp/species%ref%c_omegapi
+    species%P%r_iono = species%P%radius+40._dp/species%ref%c_omegapi
   else  
-    species%P%r_iono = species%P%r_lim+350._dp/species%ref%c_omegapi
+    species%P%r_iono = species%P%r_lim+35._dp/species%ref%c_omegapi
   endif  
   species%P%speed  = zero 
 #endif

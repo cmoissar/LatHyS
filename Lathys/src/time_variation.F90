@@ -30,6 +30,7 @@ subroutine define_VARIABLES_CME(species)
 
         real(dp)    :: t_start_MC, t_trans_start, Dt_MC, t_end, t_trans_end
         integer     :: n_start_MC, n_trans_start, Dn_MC, n_end, n_trans_end  
+        real(dp)    :: t_cut
         integer     :: i, n_cut
         real(dp)    :: V_SW, V_MC
         real(dp)    :: B_SW, Bx_SW, By_SW, Bz_SW, B_MC, By_MC, Bz_MC, B_CME_i_2
@@ -45,20 +46,20 @@ subroutine define_VARIABLES_CME(species)
 
  __WRT_DEBUG_IN("define_VARIABLES_CME")
 
-        t_start_MC = 10.0_dp
+        t_start_MC = 50.0_dp
         n_start_MC = int(t_start_MC / dt)
         Dt_MC = 70.0_dp
         Dn_MC = int(Dt_MC / dt)
-        t_trans_start = 5.0_dp
+        t_trans_start = 45.0_dp
         n_trans_start = real(int(t_trans_start / dt)) ! Avoids integer division in the tanh
-        t_end = 20.0_dp
+        t_end = 70.0_dp
         n_end = int(t_end / dt)
         t_trans_end = t_end + Dt_MC
         n_trans_end = real(int(t_trans_end / dt))
 
         !!! MAGNETIC FIELD !!!
-        B_SW   = 1.
-        Bx_SW  = bx0
+        B_SW   = 1.0_dp   !ref%mag is defined in env_<planet>.F90. 
+        Bx_SW  = bx0      !B_SW = 1 essentially means B_SW = ref%mag
         By_SW  = by0
         Bz_SW  = bz0
  
@@ -126,7 +127,8 @@ subroutine define_VARIABLES_CME(species)
         enddo
 
         !!! FLAT !!!
-        n_cut = int(120.0_dp / dt)
+        t_cut = 5.0_dp
+        n_cut = int(t_cut / dt)
         do i=1,nhm
           if (i>n_cut) then
             V_CME(i) = V_CME(n_cut)
@@ -135,8 +137,8 @@ subroutine define_VARIABLES_CME(species)
             Ng_CME(i) = Ng_CME(n_cut)
             vth1_CME(i) = vth1_CME(n_cut)
             vth2_CME(i) = vth2_CME(n_cut)
-         endif
-       enddo
+          endif
+        enddo
         
  __WRT_DEBUG_OUT("define_VARIABLES_CME")
 
