@@ -111,16 +111,16 @@ contains
   !   prefix_output = "Tew_"
   ! call merge_field_cdf_Te_array(run_name,prefix1,var_name1,prefix2,var_name2,prefix_output)   
     
-     prefix = "Atm3"
-     prefix_output = "Atmw"
-   call merge_field_cdf_atm(run_name,prefix,prefix_output)    
+ !    prefix = "Atm3"
+ !    prefix_output = "Atmw"
+ !  call merge_field_cdf_atm(run_name,prefix,prefix_output)    
    
    prefix = "Mom3"
    prefix_output = "Momw"
    call merge_moment_species_cdf(run_name,prefix,prefix_output)
  
-   prefix = "Pro3"
-   prefix_output = "Prow"
+  ! prefix = "Pro3"
+  ! prefix_output = "Prow"
   ! call merge_field_cdf_pro(run_name,prefix,prefix_output) 
    
    

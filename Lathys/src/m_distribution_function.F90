@@ -501,7 +501,44 @@ end subroutine wrt_distribution_function
      species_info(6)%Ion_label = "Hpl"
      species_info(6)%qsm_value = 1._dp
      species_info(6)%origin_value = 1
+ 
+
+  case("venus")
+     !  H+ sw
+     species_info(1)%Ion_label = "Hsw"
+     species_info(1)%qsm_value = 1._dp/1._dp
+     species_info(1)%origin_value = 0
+     !    species_info(1)%CE_value = 0
+
+      ! He++ sw
+     species_info(2)%Ion_label = "Hesw"
+     species_info(2)%qsm_value = 2._dp/4._dp
+     species_info(2)%origin_value = 0
+     !    species_info(2)%CE_value = 0
+
+      !O+ planetary
+     species_info(3)%Ion_label = "Opl"
+     species_info(3)%qsm_value = 1._dp/16._dp
+     species_info(3)%origin_value = 1
+     !    species_info(3)%CE_value = 0
+
+     !O2+ planetary
+     species_info(4)%Ion_label = "O2pl"
+     species_info(4)%qsm_value = 1._dp/32._dp
+     species_info(4)%origin_value = 1
+     !    species_info(4)%CE_value = 0
      
+     !CO2+ planetary
+     species_info(5)%Ion_label = "CO2pl"
+     species_info(5)%qsm_value = 1._dp/44._dp
+     species_info(5)%origin_value = 1
+     !    species_info(5)%CE_value = 0
+
+     !H+ planetary
+     species_info(6)%Ion_label = "Hpl"
+     species_info(6)%qsm_value = 1._dp
+     species_info(6)%origin_value = 1
+
     case("mercure")
 
      !  H+ sw

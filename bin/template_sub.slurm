@@ -1,21 +1,23 @@
 #!/bin/bash
-#SBATCH -J JOBNAME     # Request name
-#SBATCH --ntasks-per-node=24
-#SBATCH --nodes=NODES
-#SBATCH --ntasks=NbTASKS
-#SBATCH --threads-per-core=1
-#SBATCH --dependency=singleton
-#SBATCH --constraint=HSW24
-#SBATCH --time=TIME 
-#SBATCH --output JOBNAME.output
-#SBATCH --mail-type=END
-#SBATCH --mail-user=clement.moissard@lpp.polytechnique.fr
+#SBATCH --job-name=JOBNAME              # Job name
+#SBATCH --partition=nodes               # What partition the job should run on
+#SBATCH --time=TIME                     # Time limit (DD-HH:MM:SS)
+#SBATCH --ntasks=NbTASKS                # Number of MPI tasks to request
+#SBATCH --cpus-per-task=1               # Number of CPU cores per MPI task
+#SBATCH --mem=MEMG                      # Total memory to request
+#SBATCH --account=pet-interplan-2024    # Project account to use
+#SBATCH --mail-type=END,FAIL            # Mail events (NONE, BEGIN, END, FAIL, ALL)
+#SBATCH --mail-user=cpm531@york.ac.uk   # Where to send mail
+#SBATCH --output=%x-%j.log              # Standard output log
+#SBATCH --error=%x-%j.err               # Standard error log
 
 ##set -x
 
-TEMPDIR="$HOME/bin/ephemeral/JOBNAME"
+TEMPDIR="$HOME/LatHyS/bin/ephemeral/JOBNAME"
 
-cd ${SCRATCHDIR}
+SCRATCHDIR="/users/cpm531/scratch/"
+
+cd $SCRATCHDIR
 mkdir JOBNAME
 cd JOBNAME
 mkdir Code
@@ -24,7 +26,7 @@ mkdir Code/Soumission
 cp $TEMPDIR/sub_Lathys.slurm Code/Soumission
 cp $TEMPDIR/launcher.sh Code/Soumission
 cp $TEMPDIR/sub_restart.slurm Code/Soumission
-cp ~/bin/restart.sh Code/Soumission
+cp ~/LatHyS/bin/restart.sh Code/Soumission
 
 mkdir ncfiles
 cd ncfiles
@@ -45,8 +47,8 @@ mv r_*.nc restart_files
 cd ..
 
 ### Save the .output file separately so that it is easier to access
-mv $HOME/bin/JOBNAME.output ./
-mv $HOME/bin/JOBNAME_post.output ./
+mv $HOME/LatHyS/bin/JOBNAME*.err ./
+mv $HOME/LatHyS/bin/JOBNAME*.log ./
 
 ### Once everything is done, delete the tempdir ###
 cd $TEMPDIR
@@ -54,8 +56,8 @@ cd ..
 rm -rf JOBNAME
 
 ### And launch a run on a single node to post-process run results ###
-cd ${SCRATCHDIR}/JOBNAME/ncfiles/
-cp $HOME/bin/diagnostic_files/* ./
+cd $SCRATCHDIR/JOBNAME/ncfiles/
+cp $HOME/LatHyS/bin/diagnostic_files/* ./
 
 #source ./launch_diag.sh
 
