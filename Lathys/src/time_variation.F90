@@ -127,7 +127,7 @@ subroutine define_VARIABLES_CME(species)
         enddo
 
         !!! FLAT !!!
-        t_cut = 5.0_dp
+        t_cut = 120.0_dp
         n_cut = int(t_cut / dt)
         do i=1,nhm
           if (i>n_cut) then

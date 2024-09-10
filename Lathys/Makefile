@@ -17,7 +17,7 @@ COMPILER=mpiifort
 IFORTFLAG=-O3 \
 	-DHAVE_TIMING -DHAVE_NETCDF  \
 	-stand f08 -DIntelFortran \
-        -DHAVE_NO_PLANET \
+        #-DHAVE_NO_PLANET \
         #-DHAVE_FREQUENT_B_OUTPUT \
 	#-pg -g -check all,noarg_temp_created  -traceback -WB  \
 	# -opt-report 3 -opt-report-phase=pgo \

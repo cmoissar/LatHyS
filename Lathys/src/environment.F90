@@ -121,8 +121,8 @@ contains
    ionosphere      => create_ionosphere_venus
    charge_exchange => charge_exchange_generic
    feed_production => feed_ionosphere_venus
-   !temporal_change => temporal_change_CME
-   !init_temporal_change => init_change_CME
+   temporal_change => temporal_change_CME
+   init_temporal_change => init_change_CME
    call alloc_venus(density_exo,prod_pp,atmosphere,ncm)
    
   case("moon")

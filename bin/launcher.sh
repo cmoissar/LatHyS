@@ -2,23 +2,23 @@
 
 ### Short description of the job ###
 
-echo "can we make venus?"
+echo "can we make venus with a magnetic cloud?"
 
-JOBNAME='24_08_27_steady_venus_0'
+JOBNAME='24_08_27_transient_venus_4'
 
-NbTASKS=128                   # Number of tasks to use (MPI processes)
+NbTASKS=256                   # Number of tasks to use (MPI processes)
 
 TIME="0-03:15:00"
 
-NX=100
-NY=100
-NZ=100
+NX=200
+NY=200
+NZ=200
 
-TMAX=100
-DT=0.02
-DX=1
+TMAX=300
+DT=0.06
+DX=3
 
-MEM=100
+MEM=500
 
 NHM=$(echo $TMAX \/ $DT |bc)
 
