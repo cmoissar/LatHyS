@@ -35,14 +35,15 @@ subroutine define_VARIABLES_CME(species)
         real(dp)    :: V_SW, V_MC
         real(dp)    :: B_SW, Bx_SW, By_SW, Bz_SW, B_MC, By_MC, Bz_MC, B_CME_i_2
         real(dp)    :: a, b, rate
-        real(dp)    :: Ng_SW, Ng_MC
+        real(dp)    :: Ng_SW, Ng_MC, Ng_H0, Ng_He0
         real(dp)    :: vth_SW, vth_MC
         real(dp)    :: Pth_SW, Pth_CME_i
         real(dp)    :: rphi,rpsi
         integer     :: nwave
         real(dp)    :: kwave, omega
         type(species_type), intent(inout) :: species
-        integer,parameter :: H=1
+        integer, parameter :: H=1
+        integer, parameter :: He=2
 
  __WRT_DEBUG_IN("define_VARIABLES_CME")
 

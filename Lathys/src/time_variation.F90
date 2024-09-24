@@ -46,7 +46,7 @@ subroutine define_VARIABLES_CME(species)
 
  __WRT_DEBUG_IN("define_VARIABLES_CME")
 
-        t_start_MC = 100.0_dp
+        t_start_MC = 300.0_dp
         n_start_MC = int(t_start_MC / dt)
         t_trans_start = 4.0_dp
         n_trans_start = real(int(t_trans_start / dt)) ! Avoids integer division in the tanh
