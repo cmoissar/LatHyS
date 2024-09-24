@@ -87,7 +87,7 @@ module defs_variable
 ! temporal varying parameter
 real(dp),dimension(:),allocatable :: By_CME, Bz_CME, By1_CME, Bz1_CME
 real(dp),dimension(:),allocatable :: V_CME, Vy_alfven, Vz_alfven
-real(dp),dimension(:),allocatable :: Ng_CME
+real(dp),dimension(:),allocatable :: Ng_CME, Ng_H, Ng_He
 real(dp),dimension(:),allocatable :: vth1_CME, vth2_CME
 
 

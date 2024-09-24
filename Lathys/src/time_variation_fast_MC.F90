@@ -30,26 +30,32 @@ subroutine define_VARIABLES_CME(species)
 
         real(dp)    :: t_start_MC, t_trans_start, Dt_MC, t_end, t_trans_end
         integer     :: n_start_MC, n_trans_start, Dn_MC, n_end, n_trans_end  
+        real(dp)    :: t_cut
+        integer     :: i, n_cut
         real(dp)    :: V_SW, V_MC
         real(dp)    :: B_SW, Bx_SW, By_SW, Bz_SW, B_MC, By_MC, Bz_MC, B_CME_i_2
         real(dp)    :: a, b, rate
-        real(dp)    :: Ng_SW, Ng_MC, Ng_H0, Ng_He0
+        real(dp)    :: Ng_SW, Ng_MC
         real(dp)    :: vth_SW, vth_MC
         real(dp)    :: Pth_SW, Pth_CME_i
         real(dp)    :: rphi,rpsi
         integer     :: nwave
         real(dp)    :: kwave, omega
         type(species_type), intent(inout) :: species
-        integer :: i
-        integer, parameter :: H=1
-        integer, parameter :: He=2
+        integer,parameter :: H=1
 
  __WRT_DEBUG_IN("define_VARIABLES_CME")
 
-        t_start_MC = 100.0_dp
+        t_start_MC = 50.0_dp
         n_start_MC = int(t_start_MC / dt)
-        t_trans_start = 4.0_dp
+        Dt_MC = 70.0_dp
+        Dn_MC = int(Dt_MC / dt)
+        t_trans_start = 45.0_dp
         n_trans_start = real(int(t_trans_start / dt)) ! Avoids integer division in the tanh
+        t_end = 70.0_dp
+        n_end = int(t_end / dt)
+        t_trans_end = t_end + Dt_MC
+        n_trans_end = real(int(t_trans_end / dt))
 
         !!! MAGNETIC FIELD !!!
         B_SW   = 1.0_dp   !ref%mag is defined in env_<planet>.F90. 
@@ -57,53 +63,89 @@ subroutine define_VARIABLES_CME(species)
         By_SW  = by0
         Bz_SW  = bz0
  
-        B_MC   = bx0
-        By_MC  = -by0 
-        Bz_MC  = bz0
+        B_MC   = (50.0_dp / 10.0_dp) * B_SW !B_SW !(12.0_dp / 3.75_dp) * B_SW
+        By_MC  = B_MC 
+        Bz_MC  = sqrt(B_MC**2 - By_MC**2)
  
         rpsi = psi*deg_to_rad
         rphi = phi*deg_to_rad     
 
         ! 1.*integer -> real(dp), otherwise tanh(.) is unhappy
-        do i=1,nhm
-          By_CME(i) = By_SW+(By_MC-By_SW)*(1./2)*(1+tanh(1.*((i-(n_start_MC-1.25*n_trans_start/2.))*5./n_trans_start)))
-          Bz_CME(i) = Bz_SW+(Bz_MC-Bz_SW)*(1./2)*(1+tanh(1.*((i-(n_start_MC-1.25*n_trans_start/2.))*5./n_trans_start)))
+        do i=1,n_start_MC
+          By_CME(i) = By_SW+(By_MC*bessel_j1(-2.4)-By_SW) &
+                                    *(1./2)*(1+tanh(1.*((i-(n_start_MC-1.25*n_trans_start/2.))*5./n_trans_start)))
+          Bz_CME(i) = Bz_SW+(Bz_MC*bessel_j0(-2.4)-Bz_SW) &
+                                    *(1./2)*(1+tanh(1.*((i-(n_start_MC-1.25*n_trans_start/2.))*5./n_trans_start)))
+        enddo
+        
+        a = 2.4/Dn_MC
+        b = -a*(Dn_MC+n_start_MC)
+
+        do i=n_start_MC,nhm
+          By_CME(i) = B_MC*bessel_j1(a*i+b) 
+          Bz_CME(i) = B_MC*bessel_j0(a*i+b)
         enddo
 
         !!! VELOCITY !!!
         V_SW = species%S(H)%vxs  
-        V_MC = V_SW
+        V_MC = 750.0_dp/species%ref%alfvenspeed
 
         ! 1.0_dp*integer -> real(dp), otherwise tanh(.) is unhappy
-        ! the factor 1.25 is fine_tuning so that the full velocity is reached by n_start_MC
+        ! the factor 1.25 is fine_tuning so that the full velocity is reached by
+        ! n_start_MC
         do i=1,nhm
-          V_CME(i) = V_SW+(V_MC-V_SW)*(1./2)*(1+tanh(1.*((i-(n_start_MC-1.25*n_trans_start/2.))*5./n_trans_start)))
+          V_CME(i) = V_SW+(V_MC-V_SW)*(1./2)*(1+tanh(1.*((i-(n_start_MC-1.25*n_trans_start/2.))*5./n_trans_start))) &
+                         +(V_SW-V_MC)*(1./2)*(1+tanh(1.*((i-(n_end  +n_trans_end  /2.))*5./n_trans_end)))
         enddo
+
+        !do i=1,nhm
+        !   B = sqrt(Bx_SW**2 + By_CME(i)**2 + Bz_CME(i)**2)
+        !   rate = (B-B_SW) / (B_MC-B_SW)
+        !   V_CME(i) = V_SW + rate*(V_MC-V_SW)
+        !enddo
 
         !!! DENSITY !!!
         Ng_SW = 1
         Ng_MC = Ng_SW
-        Ng_H0 = species%S(H)%ng   !This is ugly. TODO: Use Ng_SW = species%(:)%ng , or something like that instead
-        Ng_He0 = species%S(He)%ng
+        Ng_H0 = species%S(H)%ng   !This is ugly and will probably only work for Venus
+        Ng_He0 = species%S(He)%ng  !TODO: Use Ng_SW = species%(:)%ng , or something like that instead
 
 
-        ! the factor 1.25 is fine_tuning so that the full density is reached by n_start_MC
+        ! the factor 1.25 is fine_tuning so that the full density is reached by
         do i=1,nhm
-          Ng_CME(i) = Ng_SW+(Ng_MC-Ng_SW)*(1./2)*(1+tanh(1.*((i-(n_start_MC-1.25*n_trans_start/2.))*5./n_trans_start))) 
-          Ng_H(i) = Ng_CME(i)*Ng_H0
-          Ng_He(i) = Ng_CME(i)*Ng_He0
+          Ng_CME(i) = Ng_SW+(Ng_MC-Ng_SW)*(1./2)*(1+tanh(1.*((i-(n_start_MC-1.25*n_trans_start/2.))*5./n_trans_start))) &
+                           +(Ng_SW-Ng_MC)*(1./2)*(1+tanh(1.*((i-(n_end  +n_trans_end  /2.))*5./n_trans_end)))
+
+          Ng_H(i) = Ng_CME(i)*Ng_H0   !Part of the ugly workaround
+          Ng_He(i) = Ng_CME(i)*Ng_He0 !Part of the ugly workaround
         enddo
         
         !!! TEMPERATURE !!!
         vth_SW = species%S(H)%vth1
-        vth_MC = vth_SW
+        ! The MC should be much colder than the solar wind
+        vth_MC = vth_SW * sqrt(1100.0_dp/11000.0_dp)
 
-        ! the factor 1.25 is fine_tuning so that the full temperature is reached by n_start_MC
+        ! the factor 1.25 is fine_tuning so that the full temperature is reached
         do i=1,nhm
-          vth1_CME(i) = vth_SW +(vth_MC-vth_SW)*(1./2)*(1+tanh(1.*((i-(n_start_MC-1.25*n_trans_start/2.))*5./n_trans_start)))
+          vth1_CME(i) = vth_SW +(vth_MC-vth_SW)*(1./2)*(1+tanh(1.*((i-(n_start_MC-1.25*n_trans_start/2.))*5./n_trans_start))) & 
+                               +(vth_SW-vth_MC)*(1./2)*(1+tanh(1.*((i-(n_end+n_trans_end  /2.))*5./n_trans_end)))
           vth2_CME(i) = vth1_CME(i)
         enddo
 
+        !!! FLAT !!!
+        t_cut = 120.0_dp
+        n_cut = int(t_cut / dt)
+        do i=1,nhm
+          if (i>n_cut) then
+            V_CME(i) = V_CME(n_cut)
+            By_CME(i) = By_CME(n_cut)
+            Bz_CME(i) = Bz_CME(n_cut)
+            Ng_CME(i) = Ng_CME(n_cut)
+            vth1_CME(i) = vth1_CME(n_cut)
+            vth2_CME(i) = vth2_CME(n_cut)
+          endif
+        enddo
+        
  __WRT_DEBUG_OUT("define_VARIABLES_CME")
 
 
@@ -116,8 +158,6 @@ type(species_type),intent(inout) :: species
  __WRT_DEBUG_IN("Init_change_CME")
 
         allocate(Ng_CME(nhm))
-        allocate(Ng_H(nhm))
-        allocate(Ng_He(nhm))
         allocate(vth1_CME(nhm))
         allocate(vth2_CME(nhm))
         allocate(By_CME(nhm))
@@ -146,8 +186,7 @@ real(dp)           , intent(inout) :: by0,bz0,by1,bz1,vxmean
 type(species_type) , intent(inout) :: species
 integer            , intent(in)    :: iter
 integer                            :: is
-integer, parameter :: H=1
-integer, parameter :: He=2
+integer,parameter :: H=1
 
 
  __WRT_DEBUG_IN("temporal_change_CME")
@@ -164,8 +203,7 @@ integer, parameter :: He=2
  species%S(:)%vys = Vy_alfven
  species%S(:)%vzs = Vz_alfven
 
- species%S(H)%ng  = Ng_H(iter)
- species%S(He)%ng = Ng_He(iter)
+ species%S(:)%ng  = Ng_CME(iter)
  
  species%S(:)%vth1 = vth1_CME(iter)
  species%S(:)%vth2 = vth2_CME(iter)

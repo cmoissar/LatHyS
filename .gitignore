@@ -1,2 +1,4 @@
 *.o
 *.mod
+bin/sub_Lathys.slurm
+bin/sub_restart.slurm

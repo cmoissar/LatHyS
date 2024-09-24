@@ -2,21 +2,21 @@
 
 ### Short description of the job ###
 
-echo "can we make venus with a magnetic cloud?"
+echo "magnetic flip at Venus. Will atmospheric escape go mad?"
 
-JOBNAME='24_08_27_transient_venus_4'
+JOBNAME='24_09_18_magnetic_flip_and_venus_0'
 
-NbTASKS=256                   # Number of tasks to use (MPI processes)
+NbTASKS=512 # Number of tasks to use (MPI processes)
 
-TIME="0-03:15:00"
+TIME="0-23:15:00"
 
-NX=200
-NY=200
-NZ=200
+NX=300
+NY=400
+NZ=400
 
 TMAX=300
-DT=0.06
-DX=3
+DT=0.04
+DX=2
 
 MEM=500
 
