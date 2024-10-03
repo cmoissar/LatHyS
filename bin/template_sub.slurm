@@ -36,6 +36,7 @@ cd ncfiles
 #
 cp $TEMPDIR/quiet_plasma .
 cp $TEMPDIR/diag .
+cp $TEMPDIR/ion_flux .
 ### on fait le calcul proprement dit
 srun --mpi=pmi2 -K1 --resv-ports -n $SLURM_NTASKS ./quiet_plasma -ncxyz NX NY NZ -dt DT --gstep DX -nhm NHM -pn PLANETNAME -r RESTART -ug 1
 

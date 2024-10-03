@@ -46,7 +46,7 @@ subroutine define_VARIABLES_CME(species)
 
  __WRT_DEBUG_IN("define_VARIABLES_CME")
 
-        t_start_MC = 300.0_dp
+        t_start_MC = 500.0_dp
         n_start_MC = int(t_start_MC / dt)
         t_trans_start = 4.0_dp
         n_trans_start = real(int(t_trans_start / dt)) ! Avoids integer division in the tanh
@@ -56,8 +56,8 @@ subroutine define_VARIABLES_CME(species)
         Bx_SW  = bx0      !B_SW = 1 essentially means B_SW = ref%mag
         By_SW  = by0
         Bz_SW  = bz0
- 
-        B_MC   = bx0
+
+        B_MC   = sqrt(bx0**2+by0**2+bz0**2)
         By_MC  = -by0 
         Bz_MC  = bz0
  
@@ -67,7 +67,8 @@ subroutine define_VARIABLES_CME(species)
         ! 1.*integer -> real(dp), otherwise tanh(.) is unhappy
         do i=1,nhm
           By_CME(i) = By_SW+(By_MC-By_SW)*(1./2)*(1+tanh(1.*((i-(n_start_MC-1.25*n_trans_start/2.))*5./n_trans_start)))
-          Bz_CME(i) = Bz_SW+(Bz_MC-Bz_SW)*(1./2)*(1+tanh(1.*((i-(n_start_MC-1.25*n_trans_start/2.))*5./n_trans_start)))
+          Bz_CME(i) = sqrt(B_MC**2-(By_CME(i))**2-bx0**2)
+          flush(6) !flush to ensure all buffered output is written without printing anything
         enddo
 
         !!! VELOCITY !!!

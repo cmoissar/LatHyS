@@ -61,15 +61,15 @@ contains
   !--IF NOT DOING A RESTART, KEEP AT 10
   integer::t_last_dump=LASTDUMP
 
-  integer::div1=25
-  integer::until1=90
-  integer::div2=5
-  integer::until2=150
-  integer::div3=25
-  integer::until3=200
-  integer::div4=25
-  integer::until4=250
-  integer::div5=25
+  integer::div1=50
+  integer::until1=550
+  integer::div2=10
+  integer::until2=850
+  integer::div3=50
+  integer::until3=900
+  integer::div4=50
+  integer::until4=1000
+  integer::div5=50
   integer::until5
 
   integer::last_until

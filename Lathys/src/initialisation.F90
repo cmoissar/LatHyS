@@ -384,7 +384,7 @@ contains
    !--when temporal_B/ does not exist yet
    !if (mpiinfo%me==0) then
    !  write(*,*) "creating temporal_B directory"
-   !  call system("mkdir temporal_B")
+   ! call system("mkdir temporal_B")
    !endif
    !--Initialisation des parametres pour la simulation
    call init3(betai,cd0,rho0,rmu0i,eps0,&

@@ -2,21 +2,21 @@
 
 ### Short description of the job ###
 
-echo "magnetic flip at Venus. Will atmospheric escape go mad?"
+echo "Rotate B quickly rather than go to 0"
 
-JOBNAME='24_09_18_magnetic_flip_and_venus_0'
+JOBNAME='24_09_27_magnetic_flip_andrey_venus_trans=4'
 
-NbTASKS=512 # Number of tasks to use (MPI processes)
+NbTASKS=712 #Number of tasks to use (MPI processes)
 
-TIME="0-23:15:00"
+TIME="0-05:05:00"
 
-NX=300
-NY=400
-NZ=400
+NX=200
+NY=350
+NZ=350
 
-TMAX=300
-DT=0.04
-DX=2
+TMAX=1500
+DT=0.06
+DX=3
 
 MEM=500
 
@@ -67,6 +67,7 @@ cd ~/LatHyS/Lathys/
 make clean
 make
 make diag
+make ion_flux
 cd ~/LatHyS/bin/
 
 ### Moving the files before entering the queue, so that I can launch ###
@@ -81,6 +82,7 @@ mkdir $TEMPDIR
 cp -rf $HOME/LatHyS/Lathys/src $TEMPDIR/
 cp -rf $HOME/LatHyS/Lathys/quiet_plasma $TEMPDIR/
 cp -rf $HOME/LatHyS/Lathys/diag $TEMPDIR/
+cp -rf $HOME/LatHyS/Lathys/ion_flux $TEMPDIR/
 mv $HOME/LatHyS/bin/sub_Lathys.slurm $TEMPDIR/
 cp $HOME/LatHyS/bin/launcher.sh $TEMPDIR/
 mv $HOME/LatHyS/bin/sub_restart.slurm $TEMPDIR/

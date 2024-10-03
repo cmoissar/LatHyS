@@ -7,7 +7,7 @@ program Ion_flux_diag
  use defs_parametre,only : fildat,dt,ncx0,ncy0,ncz0,nhm,gstep
  use m_logo,only        : print_date
  use defs_tregister
-#ifdef HAVE_NETCDF 
+#ifdef HAVE_NETCDF
  use netcdf
  use defs_basic_cdf
  use diag_wrt_common_cdf
@@ -18,17 +18,17 @@ program Ion_flux_diag
 
  implicit none
 !********************************************************************
- ! Auteur				:	 RModolo 
+ ! Auteur				:	 RModolo
  ! Date					:	 18/01/14
  ! Instituion				:	LATMOS/UVSQ/IPSL
  !						Quartier des Garennes
  ! 						11 bd d'alembert
  !						78280 guyancourt
- ! Dernière modification		:	17/01/14	
- ! Résumé	
+ ! Dernière modification		:	17/01/14
+ ! Résumé
  ! Ce programme lit des fichiers p3 (particules), et construit des
  ! tableaux de flux (n*|v|) pour chaque espece planétaires
- ! Pour les O+ on sépare les cartes de flux en deux parties 
+ ! Pour les O+ on sépare les cartes de flux en deux parties
  ! E<30eV et E> 30eV
  ! On calcule ensuite les flux d'échappement (total, par face, à differentes distances
  ! dans le sillage)
@@ -38,13 +38,15 @@ program Ion_flux_diag
  character(len=32) :: arg
  character(len=5)  :: time_read=''
  real(dp) :: Esep=30.
+ integer :: Map = 0
+ real(dp) :: Shell_alt = 6500. !km height
  character(len=*), parameter :: version = '1.0'
 
  !--Insert the date for which the diagnostic has to be reassmbled
  fildat = print_date()
 
  ncommand = command_argument_count()
- 
+
 i = 1
  do while(i<=ncommand)
   call get_command_argument(i, arg)
@@ -57,11 +59,21 @@ i = 1
   case ("-t","--time")
    i = i+1
    call get_command_argument(i, arg)
-   read(arg,*) time_read     
+   read(arg,*) time_read
  case ("-E","--Energy")
    i = i+1
    call get_command_argument(i, arg)
-   read(arg,*) Esep        
+   read(arg,*) Esep
+
+  case("-S","--Shell")
+   i = i+1
+   call get_command_argument(i,arg)
+   read(arg,*) Shell_alt
+
+  case("-2D","--2DMap")
+  i=i+1
+   call get_command_argument(i,arg)
+   read(arg,*) Map
   case ('-v', '--version')
    print '(2a)', 'diag version ', version
    stop
@@ -76,35 +88,35 @@ i = 1
 
   i = i+1
  end do
- 
+
  !--Allocate and set variables for time diagnostics
-  call set_tregister(r_tm,0)
- 
+ ! call set_tregister(r_tm,0)
+
    !--Factor to put any file name >1
-   factor = 1
-   do while(int(factor*r_tm%time(1))<1) 
-    factor = factor *10
-   end do
- 
-   if (time_read =='') then  
-   !--Time of Diagnostic 
-     write(time,'(a,i5.5)')"t",int(factor*r_tm%time(r_tm%nreg))
-   else   
+ !  factor = 1
+ !  do while(int(factor*r_tm%time(1))<1)
+ !   factor = factor *10
+ !  end do
+
+ !  if (time_read =='') then
+ !  !--Time of Diagnostic
+ !    write(time,'(a,i5.5)')"t",int(factor*r_tm%time(r_tm%nreg))
+ !  else
        write(time,'(a,a)')"t",time_read
-   endif    
- 
+ !  endif
+
    !--Create the base for the Names of file
    run_name = trim(fildat)//"_"//time
- 
+
    call wrtout(6,ch10//&
         " ==================== Treating file run  "//&
         &trim(run_name)//&
        " ====================",'PERS')
-       
-   call extract_fluxes(run_name,Esep) 
-   
- 
- 
+
+   call extract_fluxes(run_name,Esep,Shell_alt,Map)
+
+
+
 
 contains
  !!=============================================================
@@ -112,7 +124,7 @@ contains
  !!
  !! FUNCTION
  !!  Print help menu
- !!  
+ !!
  subroutine print_help()
   print '(a)', 'usage: diag [OPTIONS]'
   print '(a)', ''
@@ -125,6 +137,8 @@ contains
   print '(a)', "  -d, --date          use the date in the format dd_mm_yy"
   print '(a)', "  -t, --time          set diagnostic time in the format XXXXX"
   print '(a)', "  -E, --Energy        set diagnostic Energy separation [in eV]"
+  print '(a)', "  -S, --Shell         set diagnostic of escape on a spherical shell"
+  print '(a)', "  -2D, --2DMap        set diagnostic of escape on a spherical shell map"
  end subroutine print_help
 
 
